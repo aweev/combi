@@ -47,10 +47,10 @@ So the missing thing is not plumbing. **It is Circle itself, and billing.**
 | `apps/circle/` 31 documents | 17,925 | **0** | → `02`–`06` in this directory |
 | `apps/conus/` 13 documents | 31,027 | 0 | → `07-CONUS.md` |
 | `docs/adr/` 11 + `api/docs/adr/` 10 | 1,319 | — | → `01-DECISIONS.md`; **numbering collision (two ADR-0002s) resolved** |
-| `api/docs/` prose (CONFIGURATION + events.md) | 117 | — | superseded by `combi/` code. **Runbooks and `service-portability-standard.md` kept** (cited by `03-CAPABILITY.md`) |
-| `api/README.md` | 791 | — | **kept** — describes the still-running legacy `api/` system |
+| `api/docs/` prose (CONFIGURATION + events.md) | 117 | — | superseded by `combi/` code |
+| `api/README.md` | 791 | — | superseded; the whole `api/` tree was later removed (see `README.md` §4) |
 | `plan.md` + `task.md` | 329 | — | → `09-PLAN-90D.md` |
-| `doc/` service specs (foundation + five_services) | 3,748 | — | removed; `africa_os_i18n_geo_compliance_spec.md` **kept** as regulatory provenance |
+| `doc/` service specs (foundation + five_services) | 3,748 | — | removed; i18n/geo/compliance spec extracted to `legacy-source/` as regulatory provenance |
 | `apps/cast/` Next.js app | — | 75 `.tsx`, **one route** (`courtroom`) | the only product surface that exists. Its 3 design bibles (PDF/HTML, 572 KB) **kept** |
 
 **Three of the removed corpus's own eight verification invariants were false when re-checked** — recorded
@@ -94,7 +94,7 @@ documents described software that does not exist.
 | **Story** | **ABSENT** | `content-service` (5 impl) is a headless CMS, not Circle Story |
 | **Now / Next** | **ABSENT** | — |
 | **Possibilities** | **ABSENT** | `search-service` + `analytics-service` are raw material; no engine |
-| **basic subscription infra** | **NOT PORTED — hardest gap** | `billing-subscriptions-service`: **0 impl files, 1 test.** Material exists (`pkg/domain/financial` Subscription/Payment models; `api/internal/services/financial` = 8 impl files) but the module is empty |
+| **basic subscription infra** | **NOT PORTED — hardest gap** | `billing-subscriptions-service`: **0 impl files, 1 test.** Port source = the legacy `financial` service (8 impl files, 2,783 lines), now recoverable **only** from `/root/combi-docs-backup/legacy-source/financial/` after `api/` was deleted |
 
 **Tally: 7 ported · 4 partial · 10 absent** of the 18-item MVP definition.
 
@@ -107,14 +107,15 @@ documents described software that does not exist.
 | Invite/abuse controls not wired | `pkg/limiter` ported, **nothing calls it for invitations** | T1 live in `05-TRUST.md` §1 — the primary exploit surface is open |
 | **`pkg/{compliance,i18n,geo}` have zero importers** | `grep -rl --include='*.go' 'combi/pkg/(compliance|geo|i18n)' services cmd` → **0 matches** (without `--include` it falsely reports 2, because the checked-in binaries embed the import path strings); the only `compliance` hit in `main.go:163` is `auditlog.ComplianceService`, a different object | the regulatory substrate is **compiled, tested, and connected to nothing.** Cheapest available win |
 | No product doc cited those packages | `Language & Localization.md` ran 515 lines defining locales/RTL/plurals and never named `pkg/i18n` | the L0-integration gap was invisible to every strategy document |
-| Offline / USSD unimplemented | `ussd` appears as a schema enum in `doc/` only; **0 occurrences in `pkg/` or `services/`** | do not claim offline reach anywhere |
+| Offline / USSD unimplemented | `ussd` appeared only as a schema enum in the archived `doc/` specs; **0 occurrences in `pkg/` or `services/`** | do not claim offline reach anywhere |
 | Cast effectively unbuilt | `services/apps/cast/*`: 7 directories, **7 Go files total** | D-15 (one Cast app) |
 | NGO is the only real app code | `services/apps/ngo/*`: 7 directories, **46 Go files** | the most-built thing is the line D-13 declares history — freeze it or convert it to capabilities |
 | 13 service skeletons (≤2 impl files) | 10 with one file (api-gateway, biometric, connectivity, did, escrow, event-bus, fx, kyc, migration-interop, trust-reputation), 3 with two (offline-token, tagging, wallet-ledger) | **still present** — cut proposed in `00-MANIFEST.md` §8, not executed (needs `go.work` + a verified build) |
 | Legacy stubs fail to build | **19** per-service `cmd/server/main.go` files still exist (`find services -name main.go`) | **still present** — not repaired, not deleted. D-09 says delete them with the skeletons |
 | Repo-wide gofmt drift | the pre-commit hook fails on hundreds of `.go` files | blocked a clean docs-only commit; `--no-verify` was used for the safety snapshot. **Fix in one dedicated commit, never as a docs side-effect** |
-| `api/` brand strings live | `issuer: ngo-platform.org`, `ngo_platform_db`, `NGO Platform` TOTP issuer, `no-reply@ngo-platform.org`, "NGO Intelligence Platform Platform Backend" (doubled word), CI badge slug containing spaces (invalid URL) | D-13 — two of these are breaking changes, not edits |
-| 0-byte junk at workspace root | files named `And`, `There` | delete |
+| **`ngo-platform.org` strings live in `combi/` code, not `api/`** | `services/platform/workflow-service/activities.go:294` (`sign.ngo-platform.org`), `organization-service/workers.go:83` (`app.ngo-platform.org/join`), `notification-service/processor/processor.go:56` (`dev@ngo-platform.org`), `integration-service/adapters/stripe_adapter.go:78` (Stripe `ReturnURL`), plus `pkg/config/loader.go:33 SetEnvPrefix("NGO")` | deleting `api/` did **not** remove the brand problem. These are user-visible at runtime. D-13 |
+| `Makefile` targets are broken | `make build` exits 2: loops `services/*/` then `cd`s into `cmd/server`, but `services/apps` and `services/platform` are container dirs with no module or entrypoint (D-09 moved to library modules). `lint`/`test`/`tidy` loop the same wrong path | the repo has no working build automation beyond direct `go build`; fix alongside step 1.5 |
+| 0-byte junk at workspace root | files named `And`, `There` | **done** — removed with the rest of the root |
 
 ## 6. Honest summary
 

@@ -20,8 +20,9 @@
 | 8 | [08-STATUS.md](08-STATUS.md) | engineering | **doc claim vs code reality — the only build-readiness record** |
 | 9 | [09-PLAN-90D.md](09-PLAN-90D.md) | everyone | the next 90 days, dependency-ordered |
 
-Reference (not strategy): `../../doc/` — the Africa OS platform specs for `pkg/i18n`, `pkg/geo`,
-`pkg/compliance`. Superseded by code where they conflict; retained as regulatory-data provenance.
+Reference material that used to sit beside this repo — the legacy `api/` monolith and the `doc/`
+Africa OS specs for `pkg/i18n`, `pkg/geo`, `pkg/compliance` — has been removed from the workspace
+(§4). Where those specs conflict with code, **the code wins**; they are recoverable, not cited.
 
 ## 2. How conflicts are resolved
 
@@ -68,18 +69,41 @@ The previous corpus held **54,465 lines of markdown**, replaced by the eleven do
 | `api/docs/adr/` (numbering collided with ours — two files numbered 0002) | 532 | 10 |
 | `api/docs/` prose (CONFIGURATION, events) | 117 | 2 |
 | `plan.md` + `task.md` | 329 | 2 |
-| `doc/` service specs (the i18n/geo/compliance spec is kept) | 3,748 | 2 |
+| `doc/` service specs (the i18n/geo/compliance spec was extracted, not kept) | 3,748 | 2 |
 
 Against **824 non-test Go files**, that was ~50 prose lines per source file — and `apps/circle/` held
 17,925 of those lines with **zero** implementation files beside them.
 
-Kept intentionally: `api/README.md` (791 lines, describes the still-running legacy `api/` system),
-`api/docs/architecture/service-portability-standard.md` (cited by `03-CAPABILITY.md` §2), the `api/docs/`
-runbooks for the legacy host, and `doc/africa_os_i18n_geo_compliance_spec.md` (provenance for the
-regulatory data now in `pkg/compliance`).
+**Second removal (same day).** The rest of the workspace root was deleted too, so the repo is now
+`combi/` alone: the entire legacy `api/` monolith (1,282 files, 178 MB, 1,053 `.go` files of which 878
+non-test — measured from the archive, correcting the "~1,048" the retired `plan.md` had asserted), `doc/`
+(8 files), `bootstrap.sh`, `gosh.sh`, `tidy.sh`, and the root `go.work` + `go.work.sum`.
+Verified before deletion: nothing in `combi/` imported `api/` (its 47 `api/...` mentions are all
+provenance *comments*), no `replace` directive pointed outside `combi/`, no process held the files
+open, and all hosts plus `pkg` still build afterwards.
 
-**Recovery:** `combi/` items are in git (`git show d5df562c:<path>`). Items outside `combi/` are **not
-versioned** — they are archived at `/root/combi-docs-backup/untracked-2026-09-30.tar.gz`.
+Two things that deletion did **not** fix, and that must not be assumed away:
+* the legacy brand strings live **inside `combi/`**, not `api/` — `workflow-service/activities.go:294`,
+  `organization-service/workers.go:83`, `notification-service/processor/processor.go:56` and
+  `integration-service/adapters/stripe_adapter.go:78` all emit user-visible `ngo-platform.org`
+  URLs/e-mails, and `pkg/config/loader.go:33` still uses `SetEnvPrefix("NGO")`. D-13 covers these.
+* **`make build` fails** (exit 2). Its loops iterate `services/*/` and `cd` into `cmd/server`, but
+  `services/apps` and `services/platform` are container directories with no module or entrypoint —
+  the D-09 library-module topology the Makefile was never updated for.
+
+**Recovery.** Everything under `combi/` is in git (`git show d5df562c:<path>`). The removed root files
+were **never version-controlled** and exist only in the archive below (verified byte-identical against
+disk before deletion, `diff -rq` = 0 lines). Because `api/.env` and `api/config.yml` are inside it, the
+directory is locked to `700`/`600` — treat it as a secret-bearing artifact, not a convenient backup.
+
+```text
+/root/combi-docs-backup/root-full-2026-09-30.tar.gz    full root: api/, doc/, scripts, go.work  (70 MB)
+/root/combi-docs-backup/untracked-2026-09-30.tar.gz    earlier docs-only subset
+/root/combi-docs-backup/legacy-source/                 the three assets the plan still needs, extracted
+    financial/                                         8 impl files — port source for step 2.4 (billing)
+    africa_os_i18n_geo_compliance_spec.md              regulatory-data provenance for pkg/compliance
+    service-portability-standard.md                    precedent cited by 03-CAPABILITY.md §2
+```
 
 The removed set also failed **three of its own eight** self-declared invariants (a waitlist survived the
 decision that deleted it; the subscription enum was defined six times; sixteen files had no `Status:`

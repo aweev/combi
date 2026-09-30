@@ -63,8 +63,8 @@ ha-NG-Arab  Hausa in Ajami script  RTL — mandatory layout requirement
 Live in `apps/cast/i18n/routing.ts`; the old locale doc's "English + French" was behind the code.
 **RTL is non-negotiable:** every layout, icon, carousel, table and notification surface must be
 direction-aware, because an RTL locale already ships.
-*Scope note:* the broader registry in `doc/` (Amharic, Swahili, Portuguese, Arabic) is **platform
-capability, not a Circle commitment** — it describes what the layer can do, not what we launch.
+*Scope note:* the broader registry in the archived `doc/` specs (Amharic, Swahili, Portuguese, Arabic) is
+**platform capability, not a Circle commitment** — it describes what the layer can do, not what we launch.
 **Cost acknowledged:** four locales + RTL roughly triples UI QA surface versus English-only, and
 Ajami script shaping/font requirements are **not yet addressed anywhere** — tracked as D-16.
 
@@ -198,20 +198,29 @@ Circle       = flagship product; the trust substrate
   └── CONUS  = an application running on Circle primitives
   └── Cast   = an application (or capability), not seven services
   └── tools  = capabilities installed into Circles
-NGO          = origin story of the legacy api/ codebase. History only.
-Africa OS    = name of the platform-infrastructure specs in doc/.
+NGO          = origin story of the deleted api/ codebase. History only.
+Africa OS    = name of the platform-infrastructure specs formerly in doc/ (now archived).
 ```
 Four simultaneous identities existed with **zero cross-references**: all 13 CONUS docs never mention
 Circle; `plan.md` had **no service category for Circle at all**, so the flagship could not be placed by
 the approved migration plan. Circle gains a home under `services/apps/circle/`.
-**Breaking items — migrate deliberately, never silently edit:**
-| Current | Target | Risk |
+**Brand items that remain actionable.** The legacy `api/` monolith has since been deleted from the
+workspace, so its `config.yml` values (`issuer: ngo-platform.org`, `dbname: ngo_platform_db`,
+`totpIssuer`, `no-reply@ngo-platform.org`) are no longer migration targets — they survive only in the
+archive at `README.md` §4. **What is still live, in `combi/` code, and user-visible at runtime:**
+
+| Location | String | Risk |
 |---|---|---|
-| `api/config.yml` `issuer: "ngo-platform.org"` | `combi` | **BREAKING** — invalidates every issued token; needs a dual-accept window |
-| `api/config.yml` `dbname: "ngo_platform_db"` | `combi` | **BREAKING** — DB rename/migration |
-| `api/config.yml` `totpIssuer: "NGO Platform"` | product name | user-visible in authenticator apps |
-| `no-reply@ngo-platform.org` | brand domain | needs a real mailbox; affects deliverability |
-| 7 stale "NGO Platform" strings in `pkg/events/README.md` | accurate title | none — doc only |
+| `services/platform/workflow-service/activities.go:294` | `https://sign.ngo-platform.org/contract/…` | **BREAKING if changed** — emitted into signing links |
+| `services/platform/organization-service/workers.go:83` | `https://app.ngo-platform.org/join?token=…` | invite links sent to real people; needs the frontend URL (still hard-coded, `08-STATUS.md` §5) |
+| `services/platform/notification-service/processor/processor.go:56` | `dev@ngo-platform.org` | sender address; needs a real mailbox, affects deliverability |
+| `services/platform/integration-service/adapters/stripe_adapter.go:78` | Stripe `ReturnURL` `ngo-platform.org` | hard-coded, comment says "should come from config" |
+| `pkg/config/loader.go:33` | `SetEnvPrefix("NGO")` | **renaming is breaking**: every `NGO_*` env var in deployment would stop resolving. `combi/config.yml` documents these names, so they are contract, not cosmetic |
+
+`combi/config.yml` itself is already clean (`user: combi`, `dbname: combi`, `channelPrefix: combi:events:`,
+`issuer: combi`). The stale "NGO Platform" strings in `pkg/events/README.md` were rewritten with the
+NATS correction. **Conclusion: the brand problem moved from `api/` to `combi/`** — do not treat deleting
+the old tree as having resolved D-13.
 
 *Rejected:* Circle as the company name (code reality is `combi`; renaming code costs more than renaming
 marketing); keeping "NGO Intelligence Platform" as a second product (no document references it); four

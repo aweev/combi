@@ -146,7 +146,7 @@ Load-bearing constraints, not style preferences. Each protects the moat in §5.
 | **13 service skeletons holding ≤2 impl files** | 10 with exactly one file (api-gateway, biometric, connectivity, did, escrow, event-bus, fx, kyc, migration-interop, trust-reputation) and 3 with two (offline-token, tagging, wallet-ledger). `api-gateway-service` is the signature artifact of the topology abandoned in favour of 3 binaries. (`billing-subscriptions-service` has **0** impl files but is kept: it is the port target.) **Proposed, not yet executed** — see §8 status note. |
 | **CONUS engines 2–8** | Short, Founders, Pitch, Challenge, Live, Fan, Local — all after Daily CONUS proves return behaviour. |
 | **54,465 lines of pre-signal spec** (measured in `docs/README.md` §4) | 13 CONUS documents (31,027 lines) + 31 Circle documents (17,925) + 21 ADR files + `api/docs` prose + `plan.md`/`task.md` + 2 `doc/` service specs. Writing a 4,066-line Technical Architecture and a 2,711-line QA spec before one user exists violated CONUS's own cost discipline: *"spend to prove behavior."* **Executed** — archived in git `d5df562c` and the tar backup. |
-| **Offline/USSD reach claims** | Specified in `doc/`, implemented **zero** times. Absent from all pitch material until code exists. |
+| **Offline/USSD reach claims** | Specified only in the now-archived `doc/` specs; implemented **zero** times in `pkg/` or `services/`. Absent from all pitch material until code exists. |
 | **The doc meta-layer** | GLOSSARY / DOC_INDEX / 21 ADRs / 4 superseded stubs existed only to keep documents consistent with documents. That tax is now a shell script. **Executed.** |
 
 **Status of the code cuts** (service skeletons, legacy `main.go` stubs, NGO/Cast directories): these are

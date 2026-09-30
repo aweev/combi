@@ -29,7 +29,7 @@ recorded *and* settled. If both fail, change the wedge — keep the thesis (Mani
 | 2.1 | `circle-service`: Person, Account, Face (3 types), Circle, Membership, Role bindings, 4 archetypes, Branch depth 1 | `pkg/domain`, `pkg/persistence`, `access-control-service` | mount in `platform-server`. **This is the whole product thesis or it is nothing** |
 | 2.2 | Relationship as a first-class object + Affiliation | `pkg/domain` | no new primitive needed (D-03) |
 | 2.3 | Story / Now / Next as **projections over Activity** | `analytics-service`, `search-service` | append-only history, derived projections (`02-DOMAIN.md` §12). Not new products |
-| 2.4 | **Port billing**: `api/internal/services/financial` (8 impl files) → the empty `billing-subscriptions-service` | `pkg/domain/financial` models | use the D-06 state machine as the enum. Closes the "hardest gap" |
+| 2.4 | **Port billing**: `financial/` (8 impl files, extracted from the deleted `api/` monolith to `/root/combi-docs-backup/legacy-source/`) → the empty `billing-subscriptions-service` | `pkg/domain/financial` models | use the D-06 state machine as the enum. Closes the "hardest gap". **The source now exists only in that archive — copy it into the repo first** |
 | 2.5 | **CCU metering v0** — three dimensions only: storage, seats, API calls | `analytics-service`, `pkg/cache` | one system, four jobs (`04-ECONOMICS.md` §8). No price can be invoiced without it |
 | 2.6 | **`circle.*` events** — emit the `02-DOMAIN.md` §9 set through `events.Emit` | `pkg/events` (NATS, per D-07) | without this, every metric in `06-MEASUREMENT.md` is unmeasurable |
 | 2.7 | **`pkg/limiter` on invites + Circle creation** | already ported | **before opening any growth loop.** Invitations are the primary exploit surface (T1) |

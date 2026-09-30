@@ -16,7 +16,7 @@ review rather than argued in prose.
 
 ## 2. Manifest
 
-Reuse the platform's existing `core.ServiceManifest` precedent, plus Circle additions:
+Reuse the platform's own `core.ServiceManifest` (`pkg/domain/core/manifest.go`), plus Circle additions:
 
 ```yaml
 service_name:    vault | cargo | inventory | governance | booking | media | ...
