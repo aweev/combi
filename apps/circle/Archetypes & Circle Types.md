@@ -36,17 +36,22 @@ It does not create an entirely separate product.
 
 ---
 
-# 3. Core Archetypes
+# 3. Core Archetypes (ADR-0002)
 
-Initial archetypes:
+A Circle has exactly four archetypes:
 
 ```text
-PERSON
 FAMILY
 FELLOWSHIP
 BUSINESS
 COMMUNITY
 ```
+
+`PERSON` is **not** an archetype. Person is a primitive (`Core Objects &
+Capability Foundation.md` §3) and a Circle is a *collective* context
+(`Domain Model.md` §6). The individual context is served by Person + Personal
+Face + the `ME` navigation surface; the label "Individual / Me" survives only as
+navigation, never as a model term.
 
 Additional archetypes can be introduced later.
 
@@ -511,41 +516,52 @@ These are relationships between collective entities.
 
 ---
 
-# 27. Nested Circles
+# 27. Nesting — Branches and Affiliations (ADR-0008)
 
-Circle may eventually support nested organizational structures.
+Unbounded "circle inside circle" nesting is **not** supported. Two mechanisms,
+both already defined in `Architecture.md` §24, cover the real needs:
 
-Example:
+**Branch** — parent → child, **depth capped at 1**. A branch is a Circle in its
+own right and cannot itself have branches.
 
 ```text
 Community
 ├── Youth Group
 ├── Sports Group
 └── Project Team
-```
 
-or:
-
-```text
 Business
 ├── Operations
 ├── Marketing
 └── Finance
 ```
 
-These should use the same Circle foundation rather than separate products.
+**Affiliation** — peer link between any two Circles, each side explicitly
+choosing what it discloses. Use for relationships, not hierarchies:
+`Family ── Business`, `Community ── Family`.
+
+Both reuse the existing Circle primitives — `Domain Model.md` §5 already lists
+`Circle → Circle` as a relationship type, and a branch adds a single
+`parent_circle_id` field — so no new primitive is required (Expansion Rule,
+`Core Objects.md` §41).
+
+Rationale: at depth 1 an effective-permission check touches at most one parent,
+which keeps permission inheritance, contextual privacy (`Product Philosophy.md`
+§19) and lawful subject-access deletion tractable.
 
 ---
 
 # 28. Avoiding Organizational Complexity
 
-Nested Circles should only be created when they solve a real problem.
-
-Circle should not encourage users to create:
+Nested Circles should only be created when they solve a real problem — and the
+depth cap in §27 now enforces that rather than merely advising it. Circle should
+not encourage users to create:
 
 > Circle inside Circle inside Circle
 
-merely because the software permits it.
+merely because the software permits it. A genuinely deep organisation (national
+association → region → chapter → team) is served by Affiliation links plus a
+Directory capability, not by recursion.
 
 ---
 

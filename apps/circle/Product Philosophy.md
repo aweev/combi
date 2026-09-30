@@ -62,7 +62,7 @@ It protects:
 * intimacy;
 * meaningful history.
 
-When a group becomes too large, it should branch, affiliate, or create an intentional audience layer rather than silently becoming a crowd.
+When a group becomes too large, it should **branch** or **affiliate** rather than silently becoming a crowd (ADR-0008). Earlier drafts offered a third option, "an intentional audience layer"; that phrase described no object in the domain model and is removed — any broadcast/audience need must come through a capability under the Expansion Rule (`Core Objects & Capability Foundation.md` §41), not as a third nesting shape.
 
 Scale should come from **composition**, not dilution.
 
@@ -373,16 +373,26 @@ Users should not have to learn:
 * derived signals;
 * internal object types.
 
-The product vocabulary should remain small:
+The product vocabulary should remain small — and it is now a **closed set of
+seven** (ADR-0010), enforced by `GLOSSARY.md`:
 
 **Circle**
+**Face**
 **Story**
 **Now**
 **Next**
 **Vault**
 **Possibility**
 
-Everything else should appear only when useful.
+`Face` was previously omitted despite being a primary navigation destination
+(`Navigation & Experience Architecture.md` §4) and the identity surface through
+which every action is taken (`Identity Face & Personal Space.md` §26).
+
+Everything else — Activity, Commitment, Event, Project, Object, Document, Media,
+Transaction, Relationship, Role, Permission, Evidence, Place, Time, Money,
+Capability — is **internal architecture** and must not appear in user-facing
+copy unless a user action requires naming it. Any new user-facing noun is a
+change request against ADR-0010.
 
 ---
 

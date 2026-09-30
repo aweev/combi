@@ -41,27 +41,32 @@ rather than:
 
 ---
 
-# 3. Primary Pricing Unit
+# 3. Primary Pricing Unit (decided — ADR-0003)
 
-Circle should think in terms of **active capacity**, not simply accounts.
+The commercial unit is **Circle Capacity Units (CCU)**: the capacity a Circle
+consumes, metered across active seats, storage, media/ingest, AI/compute,
+transactions, API calls and integrations.
 
-The commercial unit may ultimately be:
+It is **not**:
 
-> **a Circle's active participants / capacity consumption**
+* a person;
+* an account;
+* an identifier from the name space (namespace scarcity is a technical concern and
+  must never be monetised — see §24 and ADR-0005).
 
-rather than:
-
-> one subscription per person.
-
-This matters because different archetypes have fundamentally different economic needs.
+The billed party is the Circle's billing account, never an individual who merely
+belongs. Archetypes still differ economically: Personal, Family and Fellowship
+contexts are zero-price with a generous fixed allowance; Business and large
+Community are the metered segments (§20).
 
 ---
 
 # 4. Archetype Economics
 
-Each archetype may eventually have its own pricing model.
+Each archetype may eventually have its own pricing model. There are exactly four
+archetypes (ADR-0002): Family, Fellowship, Business, Community.
 
-### Personal
+### Personal (context, not an archetype)
 
 Primarily free.
 
@@ -214,30 +219,31 @@ This keeps the product human-first.
 
 ---
 
-# 8. Capacity Ladder
+# 8. Capacity Ladder (revised — ADR-0004)
 
-The proposed long-term model is progressive capacity pricing.
+Pricing does **not** escalate with platform-wide user milestones. A price that
+doubles per million users was rejected: at a $5 base it reaches $2,560/month by
+10M users, which contradicts §10 (a cap that should mean something) and the
+Pricing specification's §36 (a customer who understands the price). It also
+charges a three-person Family Circle for other people's growth.
 
-Conceptually:
+What replaces it:
 
 ```text
-FIRST 1 MILLION
-→ BASE PRICE
-
-SECOND 1 MILLION
-→ 2× BASE PRICE
-
-THIRD 1 MILLION
-→ 3× BASE PRICE
-
-...
+PLAN BASE PRICE      published, predictable
++ METERED ADD-ONS    CCU above the included allowance
++ RATE CAP           at most ONE band of escalation per billing year
++ ABSOLUTE CAP       ORGANIZATION only; above it, custom terms
 ```
 
-The precise commercial formula remains configurable.
+Where band escalation applies (ORGANIZATION), it is **linear**, never exponential.
 
-The important principle is:
+The important principle survives, with the unit corrected:
 
-> **capacity becomes progressively more expensive as usage scales.**
+> **capacity becomes progressively more expensive as a Circle's own consumption
+> scales.**
+
+The unit of escalation is the customer's usage, not the platform's success.
 
 ---
 
@@ -254,13 +260,18 @@ It also allows the product to remain inexpensive at smaller scales.
 
 ---
 
-# 10. Pricing Cap
+# 10. Pricing Cap and Rate Cap
 
-There should be an upper ceiling.
+Two guarantees, both required.
 
-Once an account reaches the maximum intended pricing level:
+**Absolute cap.** Once an account reaches the maximum intended pricing level:
 
 > additional scale does not create unlimited subscription cost.
+
+**Rate cap (ADR-0004).** Independently of the absolute cap, a customer's bill may
+escalate by **at most one band per billing year**, with notice and grandfathering
+(§29). The rate cap is the promise a customer can verify against their own
+invoices; the absolute cap only bounds the worst case.
 
 The exact cap should be determined through:
 
@@ -461,84 +472,97 @@ Possible lifecycle:
 ```text
 PAYMENT DUE
 ↓
-GRACE PERIOD
+PAST_DUE
 ↓
-RESTRICTED
+GRACE
 ↓
-INACTIVE
+RESTRICTED      (Limited Mode — data intact)
 ↓
-ARCHIVED
+INACTIVE        (commercial only — data intact)
+↓
+CLOSED          (billing relationship ends — data still intact)
 ```
 
-Critical data should not disappear merely because a payment failed.
+State names are canonical per ADR-0001; `ARCHIVED` is a **data** state and must
+not appear in the subscription machine.
+
+Critical data should not disappear merely because a payment failed — and per
+ADR-0005 it now provably cannot: deletion requires an explicit user request or a
+legal obligation.
 
 ---
 
-# 23. The Three-Month Rule
+# 23. The Three-Month Rule (revised — ADR-0005)
 
-The proposed principle is:
+The old principle — three months of inactivity removes the account and releases
+its number — is **withdrawn**. It contradicted this document's own §22, the
+Pricing specification's §19 Limited Mode, and the product's North Star of
+continuity, and it punished the ordinary dormancy of human life (trips end,
+weddings pass, projects finish).
 
-> **Three months of inactive subscription should eventually cause the account to be removed from active capacity and its number released.**
+The replacement principle:
 
-This must be implemented carefully.
+> **Three months of inactive subscription ends the commercial relationship, not
+> the person's history.**
 
-The commercial state and the data lifecycle are separate.
+What may happen after the grace period: the paid plan lapses to `RESTRICTED` then
+`CLOSED`; expensive services scale down (cold-storage tiering, suspended
+background processing); the free core continues to work.
+
+What must not happen: data deletion, identifier reclamation, or being made to
+queue to get your own history back.
+
+The commercial state and the data lifecycle remain separate — that separation is
+now enforced rather than merely asserted.
 
 ---
 
-# 24. Account Number Capacity
+# 24. Account Number Capacity (revised — ADR-0003, ADR-0005)
 
-If Circle eventually has a finite or scarce identity namespace, inactive accounts should not permanently consume valuable capacity.
+Namespace scarcity is a technical capacity-planning problem and **never** a
+billing mechanism. Dormant accounts are not removed to free numbers for other
+people.
 
-Example:
+If the identity namespace genuinely becomes scarce, the correct response is to
+expand it — more digits, more prefixes, or an allocation scheme with far more
+headroom — not to delete a person's accumulated relationships and recycle their
+identifier underneath them. Reusing a human identifier that once belonged to
+someone's family record is a permanent source of mis-association bugs and privacy
+incidents.
 
 ```text
-Account inactive
+Namespace under pressure
       ↓
-3 months
+expand the namespace / change allocation
       ↓
-Account released
-      ↓
-Number returned to pool
+never reclaim an identifier from living history
 ```
 
 ---
 
-# 25. Returning User
+# 25. Returning User (revised — ADR-0005)
 
-If someone returns after their account has been removed:
+A returning user finds their history intact and reactivates through identity
+verification (`Lifecycle & Account Status.md` §37).
 
-> they should be treated as a new subscription/account state.
+* Free plan: nothing ended; they simply return.
+* Paid plan lapsed to `CLOSED`: a **new subscription** starts against the same
+  account and the same data.
 
-If the old number has already been reassigned:
-
-> the user joins the normal allocation process.
-
-They should not automatically reclaim the old identifier.
+There is no reassignment case, because identifiers are not reclaimed (§24).
 
 ---
 
-# 26. Long List / Re-entry
+# 26. Long List / Re-entry (deleted — ADR-0005)
 
-The proposed model includes a long-list mechanism.
+The waitlist mechanism is removed. It appeared in this one document only, was
+referenced by no other spec, and rested on premises the project has now rejected:
+that human identity namespaces should be rationed for commercial capacity (§24,
+ADR-0003) and that dormancy may destroy continuity (ADR-0005).
 
-If a user returns after their previous subscription has been removed:
-
-```text
-RETURN
- ↓
-REQUEST REACTIVATION
- ↓
-CURRENT CAPACITY
- ↓
-LONG LIST / QUEUE
- ↓
-AVAILABLE CAPACITY
- ↓
-REJOIN
-```
-
-The exact mechanics need later product decisions.
+Making a lapsed customer queue to regain their own family history converts a
+recoverable churn event into a public critic. There is no successor mechanism;
+reactivation is defined in `Lifecycle & Account Status.md` §37.
 
 ---
 
@@ -583,7 +607,9 @@ Pricing Rule
 ├── Currency
 ├── Regional Rule
 ├── Grace Period
-└── Maximum Price
+├── Maximum Price          (absolute cap — ORGANIZATION)
+├── Rate Cap               (one band per billing year — every plan, ADR-0004)
+└── Metered CCU Allowance  (ADR-0003)
 ```
 
 ---

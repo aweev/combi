@@ -468,11 +468,7 @@ The foundation remains consistent.
 
 # 20. INITIAL ARCHETYPES
 
-The system should support at minimum:
-
-### Individual / Me
-
-The person's own world.
+A Circle has exactly four archetypes (ADR-0002):
 
 ### Family
 
@@ -491,6 +487,11 @@ A group united around shared participation, interest, faith, activity, or purpos
 A broader collective context.
 
 These are contexts, not separate products.
+
+The individual context is **not** a fifth archetype. A person is represented by
+`Person` + `Personal Face` and the `ME` navigation surface (Story / Now / Next /
+Possibilities). Earlier drafts called this "Individual / Me" or "PERSON"; those
+names are retired as model terms, and "ME" survives only as a navigation label.
 
 The architecture should remain extensible to future archetypes.
 
@@ -1396,42 +1397,37 @@ Pricing should be configurable rather than hardcoded into application logic.
 
 # 72. PROGRESSIVE CAPACITY PRICING
 
-The planned economic model uses progressive capacity bands.
-
-Conceptually:
+The economic model is **flat published plan price + metered add-ons + a rate cap**
+(ADR-0004). Escalation with scale, where it applies at all, is linear and only for
+the ORGANIZATION tier.
 
 ```text
-FIRST 1,000,000
-→ base price
-
-NEXT 1,000,000
-→ higher price
-
-NEXT 1,000,000
-→ higher again
-
-...
-
-CAP
-→ maximum price
+PLAN BASE PRICE          published, predictable, per currency/region
++ METERED ADD-ONS        storage, AI/compute, API, extra seats (per ADR-0003)
++ RATE CAP               a bill may escalate by at most ONE band per billing year
++ ABSOLUTE CAP           ORGANIZATION only; above it, custom terms apply
 ```
 
-The price increases by the defined progression until the capped amount is reached.
+**Explicitly rejected:** any price that doubles per user milestone. Doubling is
+incompatible with §13 of the Pricing specification (“your price will never exceed
+this cap”) and with §36 (“I understand what Circle costs”), and on a global user
+count it would charge a small Circle for other people's growth.
 
-The exact numerical pricing schedule belongs in the dedicated Monetization & Economics specification.
+The numerical pricing schedule lives in [Monetization & Economics.md](Monetization%20&%20Economics.md).
 
 ---
 
 # 73. WHAT THE CAP REPRESENTS
 
-The pricing system must clearly define whether the counted unit is:
+The billable unit is **Circle Capacity Units (CCU)** — the capacity a Circle
+consumes, per ADR-0003. Metered dimensions: active seats, storage,
+media/ingest, AI/compute, transactions, API calls, integrations.
 
-* person;
-* account;
-* Circle;
-* seat;
-* capacity allocation;
-* or another measurable unit.
+The billed party is the `BILLING ACCOUNT` that owns a Circle — never a person for
+merely belonging to one (see §79).
+
+The identifier namespace is **never** a billing unit. Scarcity of account numbers
+is a technical capacity-planning concern only.
 
 The billing architecture must never ambiguously mix these concepts.
 
@@ -1441,47 +1437,48 @@ The billing architecture must never ambiguously mix these concepts.
 
 Subscription status must be separate from account identity.
 
-Possible states:
+Canonical states (ADR-0001 — defined once in `Lifecycle & Account Status.md` §10
+and referenced everywhere else):
 
 ```text
-TRIAL
-ACTIVE
-PAST_DUE
-CANCELLED
-EXPIRED
-GRACE
-INACTIVE
-DELETION_PENDING
-DELETED
+TRIAL → ACTIVE → PAST_DUE → GRACE → RESTRICTED → INACTIVE → CLOSED
 ```
+
+Two rules are part of this model:
+
+1. A **FREE** subscription never enters `PAST_DUE`, `GRACE` or `RESTRICTED`;
+   free access does not expire for non-payment.
+2. The **data lifecycle is a separate machine** —
+   `ACTIVE → ARCHIVED → DELETION_PENDING → DELETED` — and is reachable from
+   `RESTRICTED` only by explicit user request or legal obligation, never by
+   payment failure. `DELETION_PENDING` / `DELETED` are data states and must not
+   appear in the subscription enum.
 
 ---
 
-# 75. THREE-MONTH INACTIVE SUBSCRIPTION RULE
-
-The planned lifecycle is:
+# 75. LAPSED SUBSCRIPTION RULE (revised — ADR-0005)
 
 ```text
-SUBSCRIPTION ENDS
+SUBSCRIPTION ENDS (paid plans only)
 ↓
-INACTIVE PERIOD
+GRACE            (time-boxed, warned)
 ↓
-3 MONTHS
+RESTRICTED       (Limited Mode: view, communicate, export, renew, reactivate)
 ↓
-ACCOUNT REMOVAL
+INACTIVE         (commercial relationship dormant — DATA INTACT)
 ↓
-CAPACITY RELEASED
+CLOSED           (billing relationship ends — DATA STILL INTACT)
 ```
 
-Users should receive appropriate warnings before removal.
+**No data is deleted and no identifier is reclaimed** because a payment failed or
+because someone stopped using Circle. Dormancy may reduce *expensive services*
+(cold storage tiering, background processing) — see
+`Lifecycle & Account Status.md` §7 — but not continuity.
 
-The system should distinguish:
+Deletion requires an explicit user request or a legal obligation.
 
-> inactive subscription
-
-from:
-
-> deleted account.
+The system must still distinguish *inactive subscription* from *deleted account*;
+they are now genuinely different things.
 
 ---
 
@@ -1493,15 +1490,17 @@ This must be tracked independently from the user's underlying identity.
 
 ---
 
-# 77. RETURNING USERS
+# 77. RETURNING USERS (revised — ADR-0005)
 
-If someone returns after their account has been removed:
+A returning user should find their history intact and reactivate through
+identity verification (`Lifecycle & Account Status.md` §37). No waitlist and no
+long-list queue: the capacity-rationing premise behind them was removed in
+ADR-0003 (identifiers are never a billing unit) and ADR-0005 (dormancy does not
+destroy continuity).
 
-> their previous position/capacity should not automatically be reserved.
 
-If capacity is already occupied, the returning account joins the applicable long list / waitlist.
-
-This prevents permanent reservation of scarce capacity by inactive accounts.
+If a paid plan was closed, reactivation starts a new subscription against the same
+account and data.
 
 ---
 
@@ -1876,7 +1875,7 @@ The North Star should be closer to:
 
 > **meaningful continuity created for people and Circles.**
 
-The exact measurable North Star metric should be finalized in the Analytics & Measurement specification.
+The measurable North Star metric is defined in [Measurement.md](Measurement.md).
 
 ---
 
@@ -1964,7 +1963,7 @@ MVP should establish:
 * notifications;
 * search;
 * privacy;
-* English/French foundation;
+* four-locale foundation (en-NG, fr-CM, pcm-NG, ha-NG-Arab) including RTL (ADR-0009);
 * basic subscription infrastructure;
 * core security.
 

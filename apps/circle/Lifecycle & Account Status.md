@@ -145,29 +145,43 @@ Deletion should occur only after:
 
 ---
 
-# 10. Subscription Lifecycle
+# 10. Subscription Lifecycle (canonical — ADR-0001)
 
-Separate lifecycle:
+> Single source of truth for subscription states. Other documents reference this
+> section instead of restating it; five documents previously disagreed.
 
 ```text
-TRIAL / FREE
+TRIAL
 ↓
 ACTIVE
 ↓
-PAYMENT DUE
+PAST_DUE          (payment failed; automatic retries)
 ↓
-GRACE
+GRACE             (time-boxed, warned)
 ↓
-PAST DUE
+RESTRICTED        (user-facing label: "Limited Mode")
 ↓
-RESTRICTED
+INACTIVE          (commercial relationship dormant; DATA INTACT)
 ↓
-INACTIVE
-↓
-TERMINATED
+CLOSED            (billing relationship ends; DATA STILL INTACT)
 ```
 
-A Free account may not pass through paid billing states.
+Naming is fixed: `GRACE` (not `GRACE_PERIOD`), `RESTRICTED` (never `ARCHIVED`),
+`CLOSED` (replacing `TERMINATED`). `CANCELLED` and `EXPIRED` are causes of
+`PAST_DUE`, not states. `RETRY` is a mechanism inside `PAST_DUE`.
+
+A **free** account never enters `PAST_DUE`, `GRACE` or `RESTRICTED`. Free access
+does not expire for non-payment (§11). Restricting a free account happens only
+through policy or suspension, never through billing.
+
+The **data lifecycle is a separate machine** and shares no states with the above:
+
+```text
+ACTIVE → ARCHIVED → DELETION_PENDING → DELETED
+```
+
+`DELETION_PENDING` is reachable only from an explicit user request or a legal
+obligation — never from payment failure or dormancy (ADR-0005).
 
 ---
 
@@ -200,38 +214,46 @@ It should not mean:
 
 ---
 
-# 13. The Three-Month Window
+# 13. The Three-Month Window (revised — ADR-0005)
 
-Conceptual flow:
+The window governs the **commercial** relationship only.
 
 ```text
 Subscription expires
        ↓
-Grace period
+Grace period           (warned)
        ↓
-1 month
+1 month     RESTRICTED — Limited Mode, data intact
        ↓
-2 months
+2 months    INACTIVE   — expensive services scale down
        ↓
-3 months
+3 months    CLOSED     — billing relationship ends
        ↓
-Capacity released
+Data preserved · export always available · reactivation by identity verification
 ```
+
+"Released" now means cold-storage tiering and suspended background processing
+(§7 Dormant) — **not** account removal and **not** identifier reclamation.
 
 The actual dates must be communicated clearly to the user.
 
 ---
 
-# 14. Capacity Release
+# 14. Capacity Release (revised — ADR-0003, ADR-0005)
 
 When the threshold is reached:
 
-* active subscription allocation ends;
-* scarce account capacity is released;
-* identifier may return to the allocation pool;
-* expensive resources may be reclaimed.
+* the active subscription allocation ends;
+* expensive resources may be reclaimed (compute, background jobs, hot storage);
+* unused CCU allowance returns to the plan pool.
 
-This does not automatically mean immediate destruction of all data.
+It does **not** mean:
+
+* data destruction;
+* identifier reclamation (the namespace is never a billing unit — ADR-0003);
+* loss of export or reactivation rights.
+
+The free core keeps working indefinitely.
 
 ---
 
@@ -253,13 +275,20 @@ RELEASED
 AVAILABLE
 ```
 
-If identifiers are scarce, they should not remain permanently reserved for abandoned accounts.
+Identifiers are **not** reclaimed from dormant or lapsed accounts (ADR-0005). If
+the namespace becomes scarce it is expanded, not recycled: reusing an identifier
+that once carried someone's family or financial history is a permanent source of
+mis-association bugs and privacy incidents.
 
 ---
 
-# 16. Number Reuse
+# 16. Number Reuse (revised — ADR-0005)
 
-A released number may eventually be assigned to another user.
+Released numbers are **not** reassigned to other users. This section previously
+assumed reassignment; that assumption is withdrawn along with the waitlist
+mechanism (`Monetization & Capacity Strategy.md` §26).
+
+The remaining principle is sound and stays:
 
 Therefore:
 

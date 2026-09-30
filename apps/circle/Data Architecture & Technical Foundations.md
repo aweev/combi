@@ -638,48 +638,39 @@ ENTITLEMENT
 
 # 46. Progressive Pricing Foundation
 
-The planned pricing concept can be represented as a configurable tier system.
-
-Conceptually:
+Per ADR-0003 / ADR-0004 the engine **composes** a price; it does not scale one
+with platform size.
 
 ```text
-TIER 1
-first capacity block
-→ base price
-
-TIER 2
-next capacity block
-→ higher price
-
-TIER 3
-next capacity block
-→ higher price
-
-...
-
-MAXIMUM
-→ capped price
+PRICE = plan_base
+      + sum(metered CCU dimension over allowance)
+      - billing_rules(sponsorship, nonprofit, education)
+      bounded_by(rate_cap = 1 band per billing year)
+      bounded_by(absolute_cap, ORGANIZATION only)
 ```
 
-The exact numbers and currency belong in the monetization specification rather than the technical architecture.
+Tier escalation, where it applies at all, is **linear and capped** — never
+exponential. Numbers and currency live in
+[Monetization & Economics.md](Monetization%20&%20Economics.md), not here.
 
 ---
 
 # 47. Subscription Lifecycle
 
-The technical system should support:
+States are canonical in `Lifecycle & Account Status.md` §10 (ADR-0001) and must
+not be redefined here.
 
 ```text
-TRIAL
-ACTIVE
-PAST_DUE
-CANCELLED
-EXPIRED
-GRACE_PERIOD
-INACTIVE
-DELETION_PENDING
-DELETED
+Subscription:  TRIAL · ACTIVE · PAST_DUE · GRACE · RESTRICTED · INACTIVE · CLOSED
+Data:          ACTIVE · ARCHIVED · DELETION_PENDING · DELETED
 ```
+
+Two implementation constraints follow:
+
+1. The two enums live in **separate columns/tables** and are never derived from
+   one another. `RESTRICTED` is not `DELETION_PENDING`.
+2. No billing worker may write a data-lifecycle state. Deletion is triggered only
+   by an explicit user request or a legal obligation (ADR-0005).
 
 ---
 

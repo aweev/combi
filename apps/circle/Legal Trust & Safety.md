@@ -448,50 +448,75 @@ The deletion lifecycle should be explicit.
 
 ---
 
-# 32. Three-Month Inactivity Rule
+# 32. Three-Month Inactivity Rule (revised — ADR-0005)
 
-For subscription accounts subject to the planned lifecycle:
+This section previously described a dormancy → **account removal** pathway. It is
+withdrawn: removal on dormancy conflicted with the Pricing specification's §19
+(Limited Mode), the Monetization specification's §22, the Lifecycle
+specification's §12 (which defines "inactive subscription" as a *paid* state and
+explicitly excludes "user did not open the app"), and the product North Star of
+continuity.
+
+Current legal position:
 
 ```text
-SUBSCRIPTION ENDS
+SUBSCRIPTION ENDS (paid plans only)
        ↓
-INACTIVE PERIOD
+GRACE              (warned, time-boxed)
        ↓
-3 MONTHS
+RESTRICTED         (Limited Mode — data intact)
        ↓
-ACCOUNT REMOVAL PROCESS
+INACTIVE → CLOSED  (commercial relationship ends — DATA INTACT)
 ```
 
-The user should receive appropriate warnings before deletion.
+**Deletion is never a consequence of non-payment or dormancy.** It arises only
+from (a) an explicit user request, or (b) a legal or regulatory obligation. In
+both cases the user receives advance warning and a genuine opportunity to export.
+
+Lawful basis note: where personal data is retained after a commercial
+relationship closes, retention is justified by the legitimate interest of
+preserving **other members'** shared history (`Lifecycle & Account Status.md` §40,
+the shared-data problem) — and personal fields not required by that interest are
+anonymised rather than deleted (see
+`Lifecycle & Account Status.md` §36 on anonymisation, minimisation and justified retention).
 
 ---
 
-# 33. Number / Capacity Reclamation
+# 33. Number / Capacity Reclamation (revised — ADR-0003, ADR-0005)
 
-If Circle's future pricing model assigns scarce platform capacity, deletion may release that capacity.
+**Identifiers and usernames are not reclaimed from dormant or lapsed accounts.**
+Reusing a human identifier that once carried someone's family or financial history
+creates permanent mis-association and privacy exposure. If the namespace becomes
+scarce it is expanded (ADR-0003, `Lifecycle & Account Status.md` §15-16).
 
-Example:
+What *may* be released on closure is genuinely fungible capacity: unused
+metered allowance (CCU) and provisioned technical resources.
 
-> a reclaimed premium identity / slot / capacity unit becomes available again.
+The distinctions this section demanded remain mandatory and are now explicit in
+the entity model (PRD §79, ADR-0003):
 
-The exact implementation must distinguish between:
+* **user identity** — the Person; never a billing unit, never recycled;
+* **public username** — a display handle; reclamation only via explicit request;
+* **billing seat** — a CCU dimension; released when the plan lapses;
+* **platform capacity** — technical resource; scales down on dormancy.
 
-* user identity;
-* public username;
-* billing seat;
-* platform capacity.
-
-These should not be conflated.
+These must not be conflated.
 
 ---
 
-# 34. Rejoining
+# 34. Rejoining (revised — ADR-0005)
 
-If a deleted account later returns:
+A returning person reactivates against **their own account and their own
+history**, after identity verification (`Lifecycle & Account Status.md` §37). If
+their paid plan had closed, a new subscription starts on the same account.
 
-> it should be treated as a new subscription / reactivation according to the applicable rules.
+There is no "previous position" to lose, because identifiers are not reclaimed
+(§33) and no waitlist exists (`Monetization & Capacity Strategy.md` §26, deleted).
 
-If capacity has already been reassigned, the user should not assume the previous position remains reserved.
+The only genuine rejoining case is a **requested deletion that completed** — at
+which point the person is a new user, and any shared history that survived their
+deletion (`Lifecycle & Account Status.md` §40) is handled under the normal
+data-subject rules rather than by re-linking an old identity.
 
 ---
 

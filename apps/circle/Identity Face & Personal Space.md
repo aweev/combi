@@ -98,7 +98,13 @@ This replaces the more abstract terminology of "Past / Present / Future" in the 
 
 ---
 
-# 6. Public Face
+# 6. Public Face *(visibility, not a Face type — ADR-0007)*
+
+> **Taxonomy note.** The Face *types* are exactly three — `PERSONAL`, `BUSINESS`,
+> `PSEUDONYMOUS` (`Domain Model.md` §5, `Identity Privacy & Trust.md` §4-6).
+> "Public" and "Private" are **visibility levels** (`Identity Privacy & Trust.md`
+> §9), not kinds of Face. This section describes a Personal Face set to
+> discoverable; it is not a fourth identity type.
 
 A person may choose to make a portion of their Face discoverable.
 
@@ -117,7 +123,11 @@ It should never expose private context merely because the Face is public.
 
 ---
 
-# 7. Private Space
+# 7. Private Space *(a mode of a Personal Face — ADR-0007)*
+
+Private Space is a **scope rule over Story/Next objects owned by a Person**, not
+a separate primitive and not a Face type: inventing an object for it would violate
+the Expansion Rule (`Core Objects & Capability Foundation.md` §41).
 
 Every person has a private space.
 

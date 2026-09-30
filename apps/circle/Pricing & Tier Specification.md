@@ -230,60 +230,75 @@ Then explain what specifically is approaching its limit.
 
 # 11. Capacity Bands
 
-The pricing engine can internally use bands:
+The billable unit is **Circle Capacity Units (CCU)** — decided in ADR-0003. It is
+never a person, never an account, and never an identifier from the namespace.
+
+A Circle's CCU consumption is metered across:
+
+* active seats;
+* storage;
+* media / ingest volume;
+* AI / compute usage;
+* transactions processed;
+* API calls;
+* connected integrations.
+
+Bands exist only as an internal escalation ladder for the ORGANIZATION tier:
 
 ```text
-Band 1
-0–1M
-
-Band 2
-1M–2M
-
-Band 3
-2M–3M
-
+Band 1  small   — included allowance
+Band 2  medium  — +1 step
+Band 3  large   — +2 steps
 ...
+Band N  capped  — beyond this, custom terms
 ```
 
-The actual unit must be finalized.
-
-It could represent:
-
-* people;
-* active subscribers;
-* capacity units;
-* another measurable economic unit.
+Personal, Family and Fellowship contexts are **zero-price** with a generous fixed
+allowance (ADR-0003), so most users will never see a band at all.
 
 ---
 
-# 12. Progressive Price
+# 12. Price Composition (ADR-0004)
 
-The user's proposed economic principle can be represented as:
+Pricing is **not** a curve that escalates with platform size. A price that doubles
+per user milestone was explicitly rejected: it contradicts §13, contradicts §36,
+and would charge a three-person Family Circle for other people's growth.
+
+The engine composes a price instead of scaling one:
 
 ```text
-Band 1 → P
-Band 2 → 2P
-Band 3 → 3P
-Band 4 → 4P
-...
-Band N → CAP
+PLAN BASE PRICE      published, predictable, per plan (§3), per currency (§25)
++ METERED ADD-ONS    CCU dimensions above the included allowance (§15)
++ BUNDLE             where capabilities naturally work together (§16)
+- RULES              sponsorship, nonprofit, education (§35)
+= PRICE
 ```
 
-This is the pricing engine's conceptual structure.
-
-The actual monetary values should be determined through financial modeling.
+Where an ORGANIZATION tier escalates by band, escalation is **linear and capped**,
+and subject to the rate cap in §13. Monetary values come from the cost model in
+[Monetization & Economics.md](Monetization%20&%20Economics.md), anchored to the
+only price points already tested in this company (CONUS: 100 FCFA daily /
+1,000 FCFA monthly).
 
 ---
 
-# 13. Cap
+# 13. Cap and Rate Cap
 
-A maximum subscription price should exist.
+Two different guarantees, both required.
 
-The UI should communicate:
+**Absolute cap (ORGANIZATION only).** A maximum subscription price exists; above
+it the relationship moves to custom terms.
 
 > **Your price will never exceed this cap.**
 
-This creates predictability at scale.
+**Rate cap (every plan).** A customer's price may escalate by **at most one band
+per billing year**, with advance notice and grandfathering (§29, §33).
+
+> **Your bill cannot jump more than one step in a year.**
+
+The rate cap is the promise that actually protects a customer, because it is
+verifiable against their own invoices. The absolute cap only bounds the worst
+case; the rate cap bounds the surprise.
 
 ---
 
@@ -357,18 +372,26 @@ Suggested flow:
 ```text
 PAYMENT FAILED
 ↓
-RETRY
+PAST_DUE          (automatic retries)
 ↓
-GRACE PERIOD
+GRACE             (time-boxed, warned)
 ↓
-LIMITED MODE
+RESTRICTED        (Limited Mode — the user-facing label)
 ↓
-INACTIVE
+INACTIVE          (commercial only — data intact)
+↓
+CLOSED            (billing relationship ends — data still intact)
 ```
+
+State names are canonical per ADR-0001. `RETRY` is a mechanism inside `PAST_DUE`,
+not a state. Free accounts never enter this chain.
 
 ---
 
 # 19. Limited Mode
+
+> **Limited Mode** is the user-facing label for the `RESTRICTED` subscription
+> state (ADR-0001). Code and telemetry use `RESTRICTED`; copy uses "Limited Mode".
 
 When subscription expires, Circle should preserve essential continuity.
 
@@ -482,9 +505,31 @@ This belongs in the billing infrastructure rather than hard-coded into plan defi
 
 ---
 
+# 27a. Personal Context Pricing
+
+The individual context is **not** an archetype (ADR-0002), and it still needs a
+defined price, because a person is the largest cohort in the product.
+
+A Person with a Personal Face pays **nothing, permanently**, for:
+
+* their Face and visibility controls;
+* Story, Now, Next and Possibilities;
+* basic communication and search;
+* belonging to any number of Circles.
+
+A person may optionally subscribe to `PLUS` / `ADVANCED` for personal capacity —
+storage, history depth, advanced intelligence, privacy and continuity controls.
+That is a self-upgrade, never a requirement to participate.
+
+Individuals are never billed for belonging to a Circle; that is billed to the
+Circle's billing account (PRD §79, ADR-0003).
+
+---
+
 # 27. Business Pricing
 
-Business pricing may eventually depend on:
+Business pricing depends on measured CCU consumption (ADR-0003), not on headcount
+alone. It may eventually depend on:
 
 * active members;
 * operational capacity;
@@ -628,8 +673,12 @@ Something like:
 > Businesses and larger Circles can pay for the infrastructure they use.
 >
 > There is a maximum price.
+>
+> And your price cannot jump by more than one step in a year.
 
-That is the emotional simplicity the system should preserve.
+That is the emotional simplicity the system should preserve. The last line is the
+one a customer can verify against their own invoices — which is why ADR-0004
+keeps the rate cap alongside the price cap.
 
 ---
 

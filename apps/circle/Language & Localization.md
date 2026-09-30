@@ -21,15 +21,24 @@ Circle's language architecture must support:
 
 ---
 
-# 2. Core Language Decision
+# 2. Core Language Decision (ADR-0009)
 
-The foundational product should support:
+The V1 locale set is the one **already shipped** in `apps/cast/i18n/routing.ts` —
+the documents previously claimed "English + French" while four locales, including
+an RTL one, were live in code.
 
-> **English + French**
+```text
+en-NG       Nigerian English        first-class · default
+fr-CM       Cameroonian French      first-class, equal standing (§4)
+pcm-NG      Nigerian Pidgin         first-class (NOT an optional "community voice")
+ha-NG-Arab  Hausa in Ajami script   first-class · RTL
+```
 
-as first-class languages.
+This reflects the intended broad Cameroonian and Nigerian context.
 
-This reflects the intended broad Cameroonian and international context.
+The wider registry described in `doc/africa_os_i18n_geo_compliance_spec.md`
+(Amharic, Swahili, Portuguese, Arabic) is **platform capability, not Circle
+scope**: it states what the i18n layer can do, not what Circle commits to launch.
 
 ---
 
@@ -192,7 +201,9 @@ However, automatically translated content should not silently be treated as huma
 
 # 15. Cameroonian Pidgin / Mboko
 
-Cameroonian Pidgin can be supported as a community voice and language option where appropriate.
+Cameroonian Pidgin is a **first-class locale** (`pcm-NG`), not an option offered
+"where appropriate" — it ships in `apps/cast/i18n/routing.ts` and carries the
+cultural positioning in `Product Philosophy.md` §18 (ADR-0009).
 
 The product should distinguish:
 
@@ -405,7 +416,26 @@ Localization should include:
 * screen-reader compatibility;
 * sufficient text expansion space;
 * accessible language selection;
-* clear translated labels.
+* clear translated labels;
+* **right-to-left layouts** (see §32a — mandatory, not optional).
+
+---
+
+# 32a. Right-to-Left Requirement (ADR-0009)
+
+`ha-NG-Arab` ships Ajami-script Hausa, so RTL is a live requirement, not a future
+one. Every surface must be direction-aware:
+
+* mirrored navigation, reading order, carousels, tables and date pickers;
+* flow-relative spacing (start/end, never left/right);
+* icon mirroring where direction carries meaning;
+* mixed-direction content (Latin names or amounts inside Arabic-script text);
+* Arabic-script font shaping and ligature rendering;
+* `dir` set per locale at the document root;
+* notification and deep-link surfaces included.
+
+This requirement did not appear anywhere in the earlier version of this document
+despite the locale already existing in code.
 
 ---
 
