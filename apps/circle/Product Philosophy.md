@@ -386,7 +386,7 @@ seven** (ADR-0010), enforced by `GLOSSARY.md`:
 
 `Face` was previously omitted despite being a primary navigation destination
 (`Navigation & Experience Architecture.md` §4) and the identity surface through
-which every action is taken (`Identity Face & Personal Space.md` §26).
+which every action is taken (`Identity & Privacy.md` §26).
 
 Everything else — Activity, Commitment, Event, Project, Object, Document, Media,
 Transaction, Relationship, Role, Permission, Evidence, Place, Time, Money,
