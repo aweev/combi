@@ -71,7 +71,7 @@ The initial product should not assume Level 3.
 
 Vault is the Circle's financial context.
 
-```text id="v4m8k2"
+```text
 CIRCLE
    ↓
 VAULT
@@ -97,7 +97,7 @@ The Vault may contain:
 
 Core objects:
 
-```text id="c7h5a1"
+```text
 TRANSACTION
 PAYMENT
 CONTRIBUTION
@@ -120,7 +120,7 @@ A Transaction records a movement or financial event.
 
 Minimum conceptual fields:
 
-```text id="7r5q20"
+```text
 FROM
 TO
 AMOUNT
@@ -137,7 +137,7 @@ SOURCE
 
 # 7. Transaction Status
 
-```text id="x6j4x9"
+```text
 DRAFT
 INITIATED
 PENDING
@@ -211,7 +211,7 @@ It can contain:
 
 Statuses:
 
-```text id="v9z5c2"
+```text
 DRAFT
 ISSUED
 VIEWED
@@ -245,7 +245,7 @@ Settlement resolves financial obligations.
 
 Example:
 
-```text id="p5j1x0"
+```text
 Expense
 → 40,000
 
@@ -416,7 +416,7 @@ Circle should help identify differences between:
 
 Example:
 
-```text id="t6h8g4"
+```text
 Circle record:
 100,000 paid
 
@@ -472,7 +472,7 @@ Financial visibility should be granular.
 
 Possible visibility:
 
-```text id="m3p8a1"
+```text
 PARTIES ONLY
 AUTHORIZED FINANCE ROLE
 CIRCLE MEMBERS
@@ -490,7 +490,7 @@ Certain financial actions should require approval.
 
 Example:
 
-```text id="j0q7m2"
+```text
 Request
  ↓
 Review
@@ -583,7 +583,7 @@ The architecture should treat mobile money as a provider category rather than cr
 
 Conceptually:
 
-```text id="d2j6q5"
+```text
 Circle Vault
     ↓
 Payment Adapter
@@ -664,7 +664,7 @@ High-impact actions must be auditable:
 
 # 34. Financial Lifecycle
 
-```text id="8v7r2k"
+```text
 CREATED
  ↓
 REVIEWED
@@ -712,7 +712,7 @@ The Vault can feed the Possibility system.
 
 Example:
 
-```text id="6q5k8j"
+```text
 Recurring expense
 +
 Available supplier relationship
@@ -759,7 +759,7 @@ Circle remains a relationship and continuity platform.
 
 # 39. Final Model
 
-```text id="2f0w8h"
+```text
 PERSON / CIRCLE
       ↓
    FINANCIAL CONTEXT

@@ -43,6 +43,7 @@ import (
 	localization "github.com/combi/localization"
 	messaging "github.com/combi/messaging"
 	payments "github.com/combi/payments"
+	realtime "github.com/combi/realtime"
 	secretsconfig "github.com/combi/config"
 	storagesvc "github.com/combi/storage"
 )
@@ -105,6 +106,7 @@ func appOptions(cfg *config.Config) []fx.Option {
 		messaging.Module,
 		notification.Module,
 		payments.Module,
+		realtime.Module,
 		secretsconfig.Module,
 		storagesvc.Module,
 

@@ -48,7 +48,7 @@ Search should operate across the user's authorized world.
 
 Possible results:
 
-```text id="w2f8c6"
+```text
 PEOPLE
 CIRCLES
 STORY
@@ -106,7 +106,7 @@ Results should be grouped by meaning.
 
 Example:
 
-```text id="r5x2m8"
+```text
 Family Trip — Limbe
 
 Story
@@ -134,7 +134,7 @@ Example:
 
 can search:
 
-```text id="m6c8j1"
+```text
 Daniel
  ↓
 Relationship
@@ -233,7 +233,7 @@ and:
 
 Potential inputs include:
 
-```text id="8c2n4m"
+```text
 PERSON
 CIRCLE
 RELATIONSHIPS
@@ -370,7 +370,7 @@ A possibility that becomes real can eventually become Story.
 
 Example:
 
-```text id="x5q7r3"
+```text
 Possibility
  ↓
 Explored
@@ -444,7 +444,7 @@ This is one of Circle's most powerful possibilities.
 
 A person may have:
 
-```text id="a8m2v5"
+```text
 Family
 Business
 Fellowship
@@ -498,7 +498,7 @@ A dedicated area can eventually collect:
 
 Possible states:
 
-```text id="n7h2c5"
+```text
 NEW
 ↓
 EXPLORE
@@ -758,7 +758,7 @@ It should avoid confidently inferring:
 
 The overall Circle loop becomes:
 
-```text id="e4n7w3"
+```text
 WHAT EXISTS
      ↓
 UNDERSTAND CONTEXT
@@ -784,7 +784,7 @@ This is the deeper engine of Circle.
 
 # 47. Search Loop
 
-```text id="p6x3c8"
+```text
 QUESTION
  ↓
 SEARCH
@@ -800,7 +800,7 @@ ACTION
 
 # 48. Discovery Loop
 
-```text id="q9m5j1"
+```text
 CONTEXT
  ↓
 CONNECTION

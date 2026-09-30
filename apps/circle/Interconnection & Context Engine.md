@@ -22,7 +22,7 @@ The Context Engine is responsible for understanding:
 
 The conceptual graph is:
 
-```text id="4qv7q0"
+```text
 PEOPLE
   ↕
 RELATIONSHIPS
@@ -40,7 +40,7 @@ POSSIBILITIES
 
 Supporting dimensions:
 
-```text id="9h9rwx"
+```text
 TIME
 PLACE
 MONEY
@@ -82,7 +82,7 @@ Every meaningful object should have a contextual envelope.
 
 Conceptually:
 
-```text id="0a4y7h"
+```text
 OBJECT
 ├── WHO
 ├── WHAT
@@ -107,7 +107,7 @@ Links should be explicit whenever possible.
 
 Examples:
 
-```text id="8e2o5a"
+```text
 Person
 → participated in
 Event
@@ -187,7 +187,7 @@ These should inform relevance rather than become public “relationship scores.�
 
 When deciding what to surface, Circle can consider:
 
-```text id="v9f5v0"
+```text
 Relevance =
 relationship
 +
@@ -216,7 +216,7 @@ A user should see the smallest useful amount of connected information.
 
 Example:
 
-```text id="x7y9ak"
+```text
 PROJECT
 Website Redesign
 
@@ -301,7 +301,7 @@ Good:
 
 Initial semantic relationships:
 
-```text id="t8l1hf"
+```text
 BELONGS_TO
 PARTICIPATED_IN
 OWNS
@@ -366,7 +366,7 @@ A relationship may exist internally without being visible to every user.
 
 Therefore:
 
-```text id="v2h5x8"
+```text
 GRAPH
 +
 PERMISSION
@@ -384,7 +384,7 @@ Cross-Circle links are powerful.
 
 Example:
 
-```text id="w4n9go"
+```text
 Family
    ↓
 Person
@@ -404,7 +404,7 @@ Only explicitly shareable context crosses boundaries.
 
 Circles can have relationships:
 
-```text id="i4yr2d"
+```text
 Family
    ↕ affiliation
 Business
@@ -493,7 +493,7 @@ When something becomes Story, its relationships should remain intact.
 
 Example:
 
-```text id="n5x8d7"
+```text
 Story:
 "Community Water Project Completed"
 
@@ -518,7 +518,7 @@ Possibilities should emerge from graph relationships.
 
 Example:
 
-```text id="q0t3xa"
+```text
 Business
   ↓
 Completed branding project
@@ -570,7 +570,7 @@ Therefore connections need lifecycle.
 
 Possible states:
 
-```text id="6t2v1j"
+```text
 ACTIVE
 INACTIVE
 EXPIRED
@@ -632,7 +632,7 @@ Connections can change over time.
 
 Example:
 
-```text id="y2d0c1"
+```text
 2022 → Employee
 2024 → Manager
 2026 → Former employee
@@ -654,7 +654,7 @@ A user's view of the graph is a filtered projection.
 
 Conceptually:
 
-```text id="5p7x3v"
+```text
 FULL GRAPH
     ↓
 IDENTITY FILTER
@@ -696,7 +696,7 @@ The user experiences **clarity**.
 
 Example:
 
-```text id="s0j7r9"
+```text
 Business
 → Projects
 → Website Redesign
@@ -748,7 +748,7 @@ This is why Today should remain small and focused.
 
 The Living Portrait is a projection of the Context Graph around one Person.
 
-```text id="5e1j9h"
+```text
 PERSON
 │
 ├── Story
@@ -766,7 +766,7 @@ PERSON
 
 A Circle is a projection of the same graph around a collective.
 
-```text id="8v6y6v"
+```text
 CIRCLE
 │
 ├── Members

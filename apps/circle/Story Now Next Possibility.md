@@ -22,7 +22,7 @@ They are four ways of understanding the same underlying reality.
 
 # 2. The Fundamental Loop
 
-```text id="snn1a7"
+```text
 STORY
   ↓
 NOW
@@ -93,7 +93,7 @@ Circle identifies something that may be worth preserving and asks where appropri
 
 Initial Story types:
 
-```text id="s2p8n4"
+```text
 MEMORY
 MILESTONE
 DECISION
@@ -116,7 +116,7 @@ These are classifications, not separate databases.
 
 Every Story item should retain relevant context:
 
-```text id="1l6mcv"
+```text
 WHO
 WHAT
 WHEN
@@ -138,7 +138,7 @@ A Story item can link to another Story item.
 
 Example:
 
-```text id="q4q4h3"
+```text
 Family Wedding
      ↓
 Birth of Child
@@ -158,7 +158,7 @@ A Story item can have its own visibility.
 
 For example:
 
-```text id="5r2cvb"
+```text
 Family Story
 → Family only
 
@@ -215,7 +215,7 @@ The system should prioritize:
 
 # 11. Now Components
 
-```text id="v0t3fa"
+```text
 NOW
 ├── Needs attention
 ├── Active
@@ -277,7 +277,7 @@ Next can belong to:
 
 # 14. Next Has Different Certainty Levels
 
-```text id="w88axp"
+```text
 IDEA
  ↓
 INTENTION
@@ -393,7 +393,7 @@ Every generated possibility should have an underlying reason.
 
 Conceptually:
 
-```text id="8q70hz"
+```text
 POSSIBILITY
 │
 ├── Source
@@ -425,7 +425,7 @@ However, confidence must never be confused with truth.
 
 Example:
 
-```text id="6k8s3n"
+```text
 FACT
 "I completed Project X."
 
@@ -476,7 +476,7 @@ Where appropriate, users can explain why.
 
 A possibility can become Next.
 
-```text id="t0n6l0"
+```text
 Possibility
      ↓
 Save
@@ -512,7 +512,7 @@ A possibility can originate from one Circle and become useful in another.
 
 Example:
 
-```text id="z5b9pu"
+```text
 Business Story
       ↓
 Skill demonstrated
@@ -532,7 +532,7 @@ Cross-Circle intelligence must respect permissions.
 
 Me combines:
 
-```text id="r8j0yz"
+```text
 STORY
 +
 NOW
@@ -584,7 +584,7 @@ Some Next objects belong to multiple people.
 
 Example:
 
-```text id="91q5sm"
+```text
 Amina
   \
    → Wedding
@@ -630,7 +630,7 @@ But the system should support the relationship.
 
 # 31. Final Model
 
-```text id="5trj6x"
+```text
                  POSSIBILITY
                 ↗           ↘
            STORY             NEXT

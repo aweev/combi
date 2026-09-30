@@ -36,7 +36,7 @@ Not:
 
 Circle should revolve around:
 
-```text id="j3p7x2"
+```text
 ME
 │
 ├── NOW
@@ -317,7 +317,7 @@ Example:
 
 ### Family
 
-```text id="y4n2z1"
+```text
 Home
 People
 Story
@@ -328,7 +328,7 @@ Next
 
 ### Business
 
-```text id="w8x3k5"
+```text
 Home
 People
 Customers
@@ -368,7 +368,7 @@ Switching should be easy.
 
 Example:
 
-```text id="z7q4c1"
+```text
 ME
 │
 ├── Family
@@ -421,7 +421,7 @@ The actions available depend on context.
 
 A universal create action can eventually allow:
 
-```text id="x5r9h2"
+```text
 Story
 Event
 Commitment
@@ -487,7 +487,7 @@ This makes the interconnected model visible without exposing database complexity
 
 Desktop can support:
 
-```text id="b6h3m9"
+```text
 GLOBAL NAV
       │
 CONTEXT NAV
@@ -601,7 +601,7 @@ Opening it should take the user directly to:
 
 Every screen should preserve:
 
-```text id="q8t2m6"
+```text
 WHO
 WHERE
 WHAT
@@ -643,7 +643,7 @@ and more like:
 
 # 38. Final Architecture
 
-```text id="n4c8y2"
+```text
                          ME / FACE
                             │
         ┌───────────────────┼───────────────────┐

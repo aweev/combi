@@ -220,7 +220,7 @@ The proposed long-term model is progressive capacity pricing.
 
 Conceptually:
 
-```text id="0j3s9e"
+```text
 FIRST 1 MILLION
 → BASE PRICE
 
@@ -293,7 +293,7 @@ Technical capacity may still have:
 
 The pricing engine should support:
 
-```text id="4h5g0k"
+```text
 ARCHETYPE
 +
 CAPACITY
@@ -458,7 +458,7 @@ Payment failures should not immediately destroy a Circle's continuity.
 
 Possible lifecycle:
 
-```text id="3l1k7x"
+```text
 PAYMENT DUE
 ↓
 GRACE PERIOD
@@ -492,7 +492,7 @@ If Circle eventually has a finite or scarce identity namespace, inactive account
 
 Example:
 
-```text id="v8q4c2"
+```text
 Account inactive
       ↓
 3 months
@@ -524,7 +524,7 @@ The proposed model includes a long-list mechanism.
 
 If a user returns after their previous subscription has been removed:
 
-```text id="0q8h5m"
+```text
 RETURN
  ↓
 REQUEST REACTIVATION
@@ -572,7 +572,7 @@ The pricing engine should be configurable rather than hard-coded.
 
 Conceptually:
 
-```text id="w4g5n1"
+```text
 Pricing Rule
 ├── Archetype
 ├── Plan

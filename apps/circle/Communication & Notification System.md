@@ -51,7 +51,7 @@ Examples:
 
 Circle should support multiple forms:
 
-```text id="x6b2p4"
+```text
 DIRECT
 CIRCLE
 OBJECT
@@ -184,7 +184,7 @@ It is not necessarily a message.
 
 Possible categories:
 
-```text id="p9w4k3"
+```text
 PEOPLE
 CIRCLES
 COMMITMENTS
@@ -453,7 +453,7 @@ Every notification should be traceable to a source object.
 
 Example:
 
-```text id="u4c8j2"
+```text
 Notification
  ↓
 Project
@@ -473,7 +473,7 @@ The Notification Center should group by context rather than simply by timestamp.
 
 Example:
 
-```text id="r7m2k6"
+```text
 TODAY
 
 Family
@@ -585,7 +585,7 @@ A Business project completed in 2029 should still be able to show:
 
 Messages can have states:
 
-```text id="s2g7x5"
+```text
 SENT
 DELIVERED
 READ
@@ -658,7 +658,7 @@ Again, suggestion first.
 
 # 45. Final Communication Model
 
-```text id="q4j7m2"
+```text
 MESSAGE
    │
    ├──→ ACTIVITY

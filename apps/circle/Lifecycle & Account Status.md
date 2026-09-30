@@ -23,7 +23,7 @@ Circle needs a precise lifecycle model so that:
 
 There are several independent lifecycles.
 
-```text id="q1w8d4"
+```text
 ACCOUNT
 SUBSCRIPTION
 CIRCLE
@@ -41,7 +41,7 @@ They must not be collapsed into one status.
 
 Conceptually:
 
-```text id="a7y2v9"
+```text
 INVITED
   ↓
 CREATED
@@ -149,7 +149,7 @@ Deletion should occur only after:
 
 Separate lifecycle:
 
-```text id="e8u5j1"
+```text
 TRIAL / FREE
 ↓
 ACTIVE
@@ -204,7 +204,7 @@ It should not mean:
 
 Conceptual flow:
 
-```text id="k9t3m5"
+```text
 Subscription expires
        ↓
 Grace period
@@ -239,7 +239,7 @@ This does not automatically mean immediate destruction of all data.
 
 Identifiers may have their own lifecycle:
 
-```text id="j3c8r0"
+```text
 AVAILABLE
 ↓
 ASSIGNED
@@ -306,7 +306,7 @@ The proposed long-list mechanism can handle cases where:
 
 Conceptually:
 
-```text id="k1v6m8"
+```text
 RETURN REQUEST
       ↓
 ELIGIBILITY
@@ -341,7 +341,7 @@ Rules must be deterministic and auditable.
 
 A Circle has its own lifecycle.
 
-```text id="w4s7z2"
+```text
 DRAFT
 ↓
 ACTIVE
@@ -414,7 +414,7 @@ Historical records may remain subject to privacy and legal rules.
 
 # 27. Membership Lifecycle
 
-```text id="y3r6p0"
+```text
 INVITED
 ↓
 PENDING
@@ -434,7 +434,7 @@ Leaving does not automatically erase historical participation.
 
 Individual objects may have:
 
-```text id="t8n2q5"
+```text
 DRAFT
 ↓
 ACTIVE
@@ -452,7 +452,7 @@ or domain-specific states.
 
 Data should follow:
 
-```text id="e7x1c4"
+```text
 CREATED
 ↓
 ACTIVE
@@ -493,7 +493,7 @@ Financial records have stronger retention requirements.
 
 They may need:
 
-```text id="h8z5q3"
+```text
 ACTIVE
 ↓
 SETTLED
@@ -537,7 +537,7 @@ Suspension should not automatically destroy data.
 
 Where appropriate:
 
-```text id="j9f3w2"
+```text
 SUSPENDED
 ↓
 REVIEW
@@ -547,7 +547,7 @@ REINSTATED
 
 or:
 
-```text id="h6p8x4"
+```text
 SUSPENDED
 ↓
 TERMINATED
@@ -606,7 +606,7 @@ Reactivation should preserve continuity where possible.
 
 Potential states:
 
-```text id="m7c2q1"
+```text
 REACTIVATION REQUEST
 ↓
 IDENTITY VERIFICATION
@@ -680,7 +680,7 @@ Major transitions should produce events.
 
 Examples:
 
-```text id="u7m2x8"
+```text
 ACCOUNT_CREATED
 SUBSCRIPTION_STARTED
 SUBSCRIPTION_EXPIRED
@@ -699,7 +699,7 @@ ACCOUNT_DELETED
 
 The final system should maintain separate state machines for:
 
-```text id="a0c8r4"
+```text
 Account
 Subscription
 Circle
@@ -731,7 +731,7 @@ The lifecycle must be:
 
 # 44. Final Model
 
-```text id="p3j8s1"
+```text
                  ACCOUNT
                     │
        ┌────────────┼────────────┐

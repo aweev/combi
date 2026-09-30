@@ -56,7 +56,7 @@ Rather than creating dozens of plans, Circle should begin with a small number.
 
 Conceptually:
 
-```text id="g2v8h1"
+```text
 FREE
 ↓
 PLUS
@@ -197,7 +197,7 @@ Every plan has capacity dimensions.
 
 Potential dimensions:
 
-```text id="x4w8f7"
+```text
 PEOPLE
 CIRCLES
 STORAGE
@@ -232,7 +232,7 @@ Then explain what specifically is approaching its limit.
 
 The pricing engine can internally use bands:
 
-```text id="n5y1j8"
+```text
 Band 1
 0–1M
 
@@ -260,7 +260,7 @@ It could represent:
 
 The user's proposed economic principle can be represented as:
 
-```text id="8r3h2c"
+```text
 Band 1 → P
 Band 2 → 2P
 Band 3 → 3P
@@ -354,7 +354,7 @@ A failed payment should not immediately destroy access.
 
 Suggested flow:
 
-```text id="2m7j5p"
+```text
 PAYMENT FAILED
 ↓
 RETRY
@@ -556,7 +556,7 @@ The user should always be able to answer:
 
 Internally:
 
-```text id="7j3f0n"
+```text
 getPrice(
     archetype,
     plan,

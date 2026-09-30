@@ -10,7 +10,7 @@ import (
 	"github.com/combi/pkg/domain/queue"
 	"github.com/combi/pkg/domain/rbac"
 	"github.com/combi/pkg/domain/realtime"
-	persistence_repo "ngo-platform.org/server/internal/persistence/redis"
+	persistence_repo "github.com/combi/pkg/persistence/redis"
 	"github.com/combi/pkg/events"
 	"github.com/combi/pkg/log"
 	"github.com/combi/pkg/monitoring"
