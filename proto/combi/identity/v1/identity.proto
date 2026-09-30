@@ -1,0 +1,462 @@
+syntax = "proto3";
+
+// Package combi.identity.v1 provides identity management for the Combi platform.
+package combi.identity.v1;
+
+option go_package = "github.com/combi/gen/go/identity/v1;identityv1";
+
+import "google/protobuf/timestamp.proto";
+import "buf/validate/validate.proto";
+
+// IdentityService manages user identities, devices, KYC status, and contacts.
+service IdentityService {
+  // Core CRUD
+
+  // CreateIdentity provisions a new identity for a phone-verified user or entity.
+  rpc CreateIdentity      (CreateIdentityRequest)      returns (CreateIdentityResponse);
+  // GetIdentity retrieves a single identity by its ID.
+  rpc GetIdentity         (GetIdentityRequest)          returns (GetIdentityResponse);
+  // UpdateIdentity updates mutable profile fields on an identity.
+  rpc UpdateIdentity      (UpdateIdentityRequest)       returns (UpdateIdentityResponse);
+  // SuspendIdentity places an identity into a suspended state with a recorded reason.
+  rpc SuspendIdentity     (SuspendIdentityRequest)      returns (SuspendIdentityResponse);
+  // DeleteIdentity soft-deletes an identity and records the acting administrator.
+  rpc DeleteIdentity      (DeleteIdentityRequest)       returns (DeleteIdentityResponse);
+
+  // Lookup
+
+  // ResolveByPhone looks up an identity by its verified E.164 phone number.
+  rpc ResolveByPhone      (ResolveByPhoneRequest)       returns (ResolveByPhoneResponse);
+  // ResolveByHandle looks up an identity by its unique @handle.
+  rpc ResolveByHandle     (ResolveByHandleRequest)      returns (ResolveByHandleResponse);
+  // BatchGetIdentities fetches multiple identities in a single call.
+  rpc BatchGetIdentities  (BatchGetIdentitiesRequest)   returns (BatchGetIdentitiesResponse);
+
+  // KYC (delegated to kyc-service but identity owns the level)
+
+  // UpdateKycStatus updates the KYC verification status and level for an identity.
+  rpc UpdateKycStatus     (UpdateKycStatusRequest)      returns (UpdateKycStatusResponse);
+
+  // Devices
+
+  // RegisterDevice registers a new trusted device for an identity.
+  rpc RegisterDevice      (RegisterDeviceRequest)       returns (RegisterDeviceResponse);
+  // ListDevices returns all devices registered to an identity.
+  rpc ListDevices         (ListDevicesRequest)          returns (ListDevicesResponse);
+  // RevokeDevice removes a device from an identity, preventing future auth.
+  rpc RevokeDevice        (RevokeDeviceRequest)         returns (RevokeDeviceResponse);
+  // UpdateDeviceTrust promotes or demotes a device's trust level.
+  rpc UpdateDeviceTrust   (UpdateDeviceTrustRequest)    returns (UpdateDeviceTrustResponse);
+
+  // Contacts (privacy-preserving phone graph)
+
+  // SyncContacts matches hashed phone numbers against registered identities.
+  rpc SyncContacts        (SyncContactsRequest)         returns (SyncContactsResponse);
+
+  // Audit
+
+  // GetAuditLog returns a paginated log of actions taken on an identity.
+  rpc GetAuditLog         (GetAuditLogRequest)          returns (GetAuditLogResponse);
+
+  // Health (required)
+
+  // HealthCheck returns the liveness and version of the identity service.
+  rpc HealthCheck         (HealthCheckRequest)          returns (HealthCheckResponse);
+}
+
+// ── Core messages ─────────────────────────────────────────────────────────────
+
+// Identity represents a verified participant on the Combi platform.
+message Identity {
+  // id is the canonical identity identifier, formatted as idn_ULID.
+  string    id                    = 1;
+  // did is the decentralized identifier, formatted as did:afros:idn_ULID.
+  string    did                   = 2;
+  // phone is the E.164-formatted verified phone number.
+  string    phone                 = 3;
+  // phone_verified indicates whether the phone number has been verified via OTP.
+  bool      phone_verified        = 4;
+  // email is the optional verified email address.
+  string    email                 = 5;
+  // handle is the unique, user-chosen @handle for this identity.
+  string    handle                = 6;
+  // name is the display name of the identity.
+  string    name                  = 7;
+  // country is the ISO 3166-1 alpha-2 country code of the identity.
+  string    country               = 8;
+  // locale is the IETF BCP 47 language tag for the identity's preferred locale.
+  string    locale                = 9;
+  // avatar_url is the URL of the identity's profile picture.
+  string    avatar_url            = 10;
+  // kyc_status is the current Know Your Customer verification status.
+  KycStatus kyc_status            = 11;
+  // kyc_level is the numeric KYC tier (0–3), where higher grants more platform access.
+  int32     kyc_level             = 12;
+  // type classifies the broad category of this identity.
+  IdentityType   type             = 13;
+  // subtype further classifies the identity within its type.
+  IdentitySubtype subtype         = 14;
+  // status is the current lifecycle status of this identity.
+  IdentityStatus  status          = 15;
+  // immunity_shield_active indicates whether the identity is protected from moderation actions.
+  bool      immunity_shield_active = 16;
+  // aura_score is the reputation score reflecting positive community contributions.
+  int32     aura_score            = 17;
+  // toxicity_score is the aggregated score reflecting negative or harmful behaviour.
+  int32     toxicity_score        = 18;
+  // tenant_id scopes this identity to a specific platform tenant.
+  string    tenant_id             = 19;
+  // created_at is the timestamp when this identity was first created.
+  google.protobuf.Timestamp created_at = 20;
+  // updated_at is the timestamp of the most recent update to this identity.
+  google.protobuf.Timestamp updated_at = 21;
+}
+
+// IdentityType classifies the broad category of an identity.
+enum IdentityType {
+  // IDENTITY_TYPE_UNSPECIFIED is the default zero value; do not use explicitly.
+  IDENTITY_TYPE_UNSPECIFIED  = 0;
+  // IDENTITY_TYPE_INDIVIDUAL represents a natural person.
+  IDENTITY_TYPE_INDIVIDUAL   = 1;
+  // IDENTITY_TYPE_BUSINESS represents a registered business or organisation.
+  IDENTITY_TYPE_BUSINESS     = 2;
+  // IDENTITY_TYPE_DEVICE represents a non-human machine or IoT identity.
+  IDENTITY_TYPE_DEVICE       = 3;
+  // IDENTITY_TYPE_GOVERNMENT represents a government body or official agency.
+  IDENTITY_TYPE_GOVERNMENT   = 4;
+}
+
+// IdentitySubtype further classifies an identity within its type.
+enum IdentitySubtype {
+  // IDENTITY_SUBTYPE_UNSPECIFIED is the default zero value; do not use explicitly.
+  IDENTITY_SUBTYPE_UNSPECIFIED = 0;
+  // IDENTITY_SUBTYPE_CIVILIAN is a standard, non-specialist individual identity.
+  IDENTITY_SUBTYPE_CIVILIAN    = 1;
+  // IDENTITY_SUBTYPE_MERCENARY is a contracted or gig-economy participant.
+  IDENTITY_SUBTYPE_MERCENARY   = 2;
+  // IDENTITY_SUBTYPE_CREATOR is a content creator with publishing privileges.
+  IDENTITY_SUBTYPE_CREATOR     = 3;
+  // IDENTITY_SUBTYPE_SPONSOR is a paying sponsor or advertiser identity.
+  IDENTITY_SUBTYPE_SPONSOR     = 4;
+}
+
+// KycStatus represents the Know Your Customer verification state of an identity.
+enum KycStatus {
+  // KYC_STATUS_UNSPECIFIED is the default zero value; do not use explicitly.
+  KYC_STATUS_UNSPECIFIED = 0;
+  // KYC_STATUS_NONE indicates no KYC process has been initiated.
+  KYC_STATUS_NONE        = 1;
+  // KYC_STATUS_PENDING indicates KYC documents have been submitted and are under review.
+  KYC_STATUS_PENDING     = 2;
+  // KYC_STATUS_VERIFIED indicates KYC has been successfully completed.
+  KYC_STATUS_VERIFIED    = 3;
+  // KYC_STATUS_REJECTED indicates KYC was attempted but the submission was rejected.
+  KYC_STATUS_REJECTED    = 4;
+  // KYC_STATUS_EXPIRED indicates a previously verified KYC has lapsed and must be renewed.
+  KYC_STATUS_EXPIRED     = 5;
+}
+
+// IdentityStatus represents the lifecycle state of an identity.
+enum IdentityStatus {
+  // IDENTITY_STATUS_UNSPECIFIED is the default zero value; do not use explicitly.
+  IDENTITY_STATUS_UNSPECIFIED          = 0;
+  // IDENTITY_STATUS_ACTIVE indicates the identity is in good standing and fully operational.
+  IDENTITY_STATUS_ACTIVE               = 1;
+  // IDENTITY_STATUS_SUSPENDED indicates the identity has been temporarily restricted.
+  IDENTITY_STATUS_SUSPENDED            = 2;
+  // IDENTITY_STATUS_DELETED indicates the identity has been soft-deleted.
+  IDENTITY_STATUS_DELETED              = 3;
+  // IDENTITY_STATUS_PENDING_VERIFICATION indicates the identity is awaiting phone or email confirmation.
+  IDENTITY_STATUS_PENDING_VERIFICATION = 4;
+}
+
+// Device represents a registered hardware or software client for an identity.
+message Device {
+  // id is the device identifier, formatted as dev_ULID.
+  string    id          = 1;
+  // identity_id is the owning identity's ID.
+  string    identity_id = 2;
+  // name is the human-readable label for this device (e.g. "Personal iPhone").
+  string    name        = 3;
+  // public_key is the Ed25519 public key for this device, encoded in base64.
+  string    public_key  = 4;
+  // platform identifies the device OS or runtime: android, ios, web, or ussd.
+  string    platform    = 5;
+  // trusted indicates whether this device has elevated trust for sensitive operations.
+  bool      trusted     = 6;
+  // last_seen_at is the timestamp of the most recent authenticated request from this device.
+  google.protobuf.Timestamp last_seen_at = 7;
+  // created_at is the timestamp when this device was registered.
+  google.protobuf.Timestamp created_at   = 8;
+}
+
+// ── Request / Response messages ───────────────────────────────────────────────
+
+// CreateIdentityRequest contains the fields required to provision a new identity.
+message CreateIdentityRequest {
+  // phone is the E.164-formatted phone number to associate with the new identity.
+  string phone      = 1 [(buf.validate.field).string.pattern = "^\\+[1-9]\\d{6,14}$"];
+  // country is the ISO 3166-1 alpha-2 country code of the user.
+  string country    = 2 [(buf.validate.field).string.len = 2];
+  // name is the display name for the new identity; max 100 characters.
+  string name       = 3 [(buf.validate.field).string.max_len = 100];
+  // type classifies the kind of identity being created.
+  IdentityType type = 4;
+  // tenant_id scopes this identity to a specific tenant; must not be empty.
+  string tenant_id  = 5 [(buf.validate.field).string.min_len = 1];
+  // locale is the IETF BCP 47 language tag for the user's preferred locale.
+  string locale     = 6;
+}
+
+// CreateIdentityResponse returns the newly created identity.
+message CreateIdentityResponse {
+  // identity is the fully populated identity record that was created.
+  Identity identity = 1;
+}
+
+// GetIdentityRequest specifies the identity to retrieve.
+message GetIdentityRequest {
+  // id is the unique identity ID to look up; must not be empty.
+  string id = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// GetIdentityResponse returns the requested identity.
+message GetIdentityResponse {
+  // identity is the retrieved identity record.
+  Identity identity = 1;
+}
+
+// ResolveByPhoneRequest looks up an identity by phone number.
+message ResolveByPhoneRequest {
+  // phone is the E.164-formatted phone number to resolve.
+  string phone = 1 [(buf.validate.field).string.pattern = "^\\+[1-9]\\d{6,14}$"];
+}
+
+// ResolveByPhoneResponse returns the identity matching the given phone number.
+message ResolveByPhoneResponse {
+  // identity is the identity associated with the provided phone number.
+  Identity identity = 1;
+}
+
+// ResolveByHandleRequest looks up an identity by its @handle.
+message ResolveByHandleRequest {
+  // handle is the unique @handle to resolve; must not be empty.
+  string handle = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// ResolveByHandleResponse returns the identity matching the given handle.
+message ResolveByHandleResponse {
+  // identity is the identity associated with the provided handle.
+  Identity identity = 1;
+}
+
+// UpdateIdentityRequest carries the mutable fields that may be changed on an identity.
+message UpdateIdentityRequest {
+  // id is the identity to update.
+  string id         = 1;
+  // name is the new display name; leave empty to leave unchanged.
+  optional string name       = 2;
+  // email is the new email address; leave empty to leave unchanged.
+  optional string email      = 3;
+  // handle is the new @handle; leave empty to leave unchanged.
+  optional string handle     = 4;
+  // avatar_url is the new profile picture URL; leave empty to leave unchanged.
+  optional string avatar_url = 5;
+  // locale is the new preferred locale; leave empty to leave unchanged.
+  optional string locale     = 6;
+}
+
+// UpdateIdentityResponse returns the identity after applying updates.
+message UpdateIdentityResponse {
+  // identity is the updated identity record.
+  Identity identity = 1;
+}
+
+// SuspendIdentityRequest initiates a suspension of an identity.
+message SuspendIdentityRequest {
+  // id is the identity to suspend.
+  string id       = 1;
+  // reason is a human-readable explanation for the suspension.
+  string reason   = 2;
+  // actor_id is the ID of the administrator or service initiating the suspension.
+  string actor_id = 3;
+}
+
+// SuspendIdentityResponse returns the identity after suspension.
+message SuspendIdentityResponse {
+  // identity is the suspended identity record.
+  Identity identity = 1;
+}
+
+// DeleteIdentityRequest initiates a soft-delete of an identity.
+message DeleteIdentityRequest {
+  // id is the identity to delete.
+  string id       = 1;
+  // actor_id is the ID of the administrator or service initiating the deletion.
+  string actor_id = 2;
+}
+
+// DeleteIdentityResponse confirms whether the deletion succeeded.
+message DeleteIdentityResponse {
+  // success is true if the identity was successfully deleted.
+  bool success = 1;
+}
+
+// UpdateKycStatusRequest updates the KYC tier and status for an identity.
+message UpdateKycStatusRequest {
+  // identity_id is the identity whose KYC status is being updated.
+  string    identity_id = 1;
+  // kyc_status is the new KYC verification status.
+  KycStatus kyc_status  = 2;
+  // kyc_level is the new numeric KYC tier (0–3).
+  int32     kyc_level   = 3;
+  // updated_by is the ID of the service or operator applying the update.
+  string    updated_by  = 4;
+}
+
+// UpdateKycStatusResponse returns the identity after the KYC update.
+message UpdateKycStatusResponse {
+  // identity is the identity record with updated KYC fields.
+  Identity identity = 1;
+}
+
+// RegisterDeviceRequest registers a new device for a given identity.
+message RegisterDeviceRequest {
+  // identity_id is the owning identity for this device.
+  string identity_id = 1;
+  // name is the human-readable label for this device.
+  string name        = 2;
+  // public_key is the Ed25519 public key for this device, encoded in base64.
+  string public_key  = 3;
+  // platform identifies the device runtime: android, ios, web, or ussd.
+  string platform    = 4;
+  // device_hash is the SHA-256 hash of the device fingerprint for deduplication.
+  string device_hash = 5;
+}
+
+// RegisterDeviceResponse returns the newly registered device.
+message RegisterDeviceResponse {
+  // device is the fully populated device record that was created.
+  Device device = 1;
+}
+
+// ListDevicesRequest requests all devices belonging to an identity.
+message ListDevicesRequest {
+  // identity_id is the identity whose devices should be listed.
+  string identity_id = 1;
+}
+
+// ListDevicesResponse returns the list of devices for the requested identity.
+message ListDevicesResponse {
+  // devices is the collection of registered devices for the identity.
+  repeated Device devices = 1;
+}
+
+// RevokeDeviceRequest removes a specific device from an identity.
+message RevokeDeviceRequest {
+  // device_id is the device to revoke.
+  string device_id    = 1;
+  // identity_id is the owning identity, used to authorise the revocation.
+  string identity_id  = 2;
+}
+
+// RevokeDeviceResponse confirms whether the revocation succeeded.
+message RevokeDeviceResponse {
+  // success is true if the device was successfully revoked.
+  bool success = 1;
+}
+
+// UpdateDeviceTrustRequest changes the trust level of a registered device.
+message UpdateDeviceTrustRequest {
+  // device_id is the device whose trust level is being changed.
+  string device_id    = 1;
+  // identity_id is the owning identity, used to authorise the operation.
+  string identity_id  = 2;
+  // trusted is the new trust state for the device.
+  bool   trusted      = 3;
+}
+
+// UpdateDeviceTrustResponse confirms whether the trust update succeeded.
+message UpdateDeviceTrustResponse {
+  // success is true if the device trust was successfully updated.
+  bool success = 1;
+}
+
+// SyncContactsRequest submits a list of hashed phone numbers for contact discovery.
+message SyncContactsRequest {
+  // identity_id is the requesting identity performing the contact sync.
+  string          identity_id    = 1;
+  // hashed_phones is the list of SHA-256-hashed E.164 phone numbers to match.
+  repeated string hashed_phones  = 2;
+}
+
+// SyncContactsResponse returns all matched contacts found on the platform.
+message SyncContactsResponse {
+  // matches is the list of contacts found among the provided hashed phone numbers.
+  repeated ContactMatch matches = 1;
+}
+
+// ContactMatch pairs a hashed phone number with its resolved identity information.
+message ContactMatch {
+  // hashed_phone is the SHA-256 hash of the matched E.164 phone number.
+  string hashed_phone  = 1;
+  // identity_id is the platform identity associated with this phone hash.
+  string identity_id   = 2;
+  // name is the display name of the matched identity.
+  string name          = 3;
+  // avatar_url is the profile picture URL of the matched identity.
+  string avatar_url    = 4;
+}
+
+// BatchGetIdentitiesRequest fetches multiple identities by ID in one call.
+message BatchGetIdentitiesRequest {
+  // ids is the list of identity IDs to retrieve.
+  repeated string ids = 1;
+}
+
+// BatchGetIdentitiesResponse returns all found identities for the requested IDs.
+message BatchGetIdentitiesResponse {
+  // identities is the list of retrieved identity records.
+  repeated Identity identities = 1;
+}
+
+// GetAuditLogRequest fetches a paginated audit trail for an identity.
+message GetAuditLogRequest {
+  // identity_id is the identity whose audit log is being requested.
+  string identity_id = 1;
+  // start_after is the cursor from the previous page; omit for the first page.
+  string start_after = 2;
+  // limit is the maximum number of entries to return per page.
+  int32  limit       = 3;
+}
+
+// GetAuditLogResponse returns a page of audit log entries.
+message GetAuditLogResponse {
+  // entries is the list of audit log entries for this page.
+  repeated AuditEntry entries = 1;
+  // next_cursor is the pagination cursor to pass in the next request; empty when done.
+  string next_cursor          = 2;
+}
+
+// AuditEntry records a single action taken on or by an identity.
+message AuditEntry {
+  // action is a string code describing what was done (e.g. "identity.suspended").
+  string action     = 1;
+  // actor_id is the ID of the entity that performed the action.
+  string actor_id   = 2;
+  // request_id is the trace ID of the request that produced this entry.
+  string request_id = 3;
+  // created_at is the timestamp when this audit entry was recorded.
+  google.protobuf.Timestamp created_at = 4;
+}
+
+// HealthCheckRequest carries no parameters; it is used to probe service liveness.
+message HealthCheckRequest {}
+
+// HealthCheckResponse reports the liveness and current version of the service.
+message HealthCheckResponse {
+  // ok is true if the service is healthy and ready to serve traffic.
+  bool   ok      = 1;
+  // version is the deployed build version string of the identity service.
+  string version = 2;
+}

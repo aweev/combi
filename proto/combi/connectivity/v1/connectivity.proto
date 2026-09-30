@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+package combi.connectivity.v1;
+
+option go_package = "github.com/combi/gen/go/combi/connectivity/v1;connectivityv1";
+
+import "google/protobuf/timestamp.proto";
+import "buf/validate/validate.proto";
+
+// ConnectivityService optimizes payload footprint and flushes deferred offline vote queues [p. 4, 21].
+service ConnectivityService {
+  // SyncOfflineQueue synchronizes locally queued votes captured during dropouts [p. 23].
+  rpc SyncOfflineQueue (SyncOfflineQueueRequest) returns (SyncOfflineQueueResponse);
+
+  // PingNetwork is a light-weight diagnostic echo [p. 4, 24].
+  rpc PingNetwork (PingNetworkRequest) returns (PingNetworkResponse);
+}
+
+// OfflineVote contains queued offline vote details.
+message OfflineVote {
+  // question_id is the unique question ULID.
+  string question_id = 1 [(buf.validate.field).string.len = 26];
+  // target_identity_id is the unique identity ULID of the target.
+  string target_identity_id = 2;
+  // client_cast_at is when the vote occurred on client [p. 23].
+  google.protobuf.Timestamp client_cast_at = 3;
+}
+
+// QueueSyncResult tracks sync status per vote.
+message QueueSyncResult {
+  // question_id is the unique question ULID.
+  string question_id = 1 [(buf.validate.field).string.len = 26];
+  // status is the sync status string [p. 23].
+  string status = 2;
+}
+
+// SyncOfflineQueueRequest is the sync payload.
+message SyncOfflineQueueRequest {
+  // identity_id is the unique identity ULID.
+  string identity_id = 1 [(buf.validate.field).string.len = 26];
+  // squad_id is the target squad ULID.
+  string squad_id = 2 [(buf.validate.field).string.len = 26];
+  // session_id is the unique session ULID.
+  string session_id = 3 [(buf.validate.field).string.len = 26];
+  // queued_votes is the list of active offline votes [p. 23].
+  repeated OfflineVote queued_votes = 4 [(buf.validate.field).repeated.min_items = 1];
+  // queue_signature is the verification signature string [p. 23].
+  string queue_signature = 5 [(buf.validate.field).string.min_len = 5];
+}
+
+// SyncOfflineQueueResponse returns sync status.
+message SyncOfflineQueueResponse {
+  // success flags if sync completed.
+  bool success = 1;
+  // results tracks sync status per vote.
+  repeated QueueSyncResult results = 2;
+}
+
+// PingNetworkRequest is the ping payload.
+message PingNetworkRequest {
+  // client_timestamp is the client timestamp string.
+  string client_timestamp = 1;
+}
+
+// PingNetworkResponse returns ping details.
+message PingNetworkResponse {
+  // server_timestamp is the server timestamp string.
+  string server_timestamp = 1;
+  // force_low_data_mode indicates if low data mode is active [p. 21].
+  bool force_low_data_mode = 2;
+}

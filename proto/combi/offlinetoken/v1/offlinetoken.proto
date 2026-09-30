@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package combi.offlinetoken.v1;
+
+option go_package = "github.com/combi/gen/go/combi/offlinetoken/v1;offlinetokenv1";
+
+import "google/protobuf/timestamp.proto";
+import "buf/validate/validate.proto";
+
+// OfflineTokenService issues and validates cryptographically signed tokens for offline vote queueing [p. 4, 23].
+service OfflineTokenService {
+  // GenerateOfflineToken generates a short-lived asymmetric key pair [p. 4].
+  rpc GenerateOfflineToken (GenerateOfflineTokenRequest) returns (GenerateOfflineTokenResponse);
+  // VerifyOfflineSignature verifies the signature of queued offline votes.
+  rpc VerifyOfflineSignature (VerifyOfflineSignatureRequest) returns (VerifyOfflineSignatureResponse);
+}
+
+// OfflineToken contains public key details for offline signatures.
+message OfflineToken {
+  // identity_id is the unique identity ULID.
+  string identity_id = 1 [(buf.validate.field).string.len = 26];
+  // public_key_signature is the public key signature multibase.
+  string public_key_signature = 2 [(buf.validate.field).string.min_len = 10];
+  // issued_at is when the keys were created.
+  google.protobuf.Timestamp issued_at = 3;
+  // expires_at is when the keys expire.
+  google.protobuf.Timestamp expires_at = 4;
+}
+
+// GenerateOfflineTokenRequest is the token creation payload.
+message GenerateOfflineTokenRequest {
+  // identity_id is the unique identity ULID.
+  string identity_id = 1 [(buf.validate.field).string.len = 26];
+  // device_hash is the target hardware fingerprint.
+  string device_hash = 2 [(buf.validate.field).string.min_len = 16];
+}
+
+// GenerateOfflineTokenResponse returns the public and private keys.
+message GenerateOfflineTokenResponse {
+  // token is the public signature verification key.
+  OfflineToken token = 1;
+  // encrypted_private_key is the private key encrypted with device parameters.
+  string encrypted_private_key = 2;
+}
+
+// VerifyOfflineSignatureRequest verifies local signature payloads.
+message VerifyOfflineSignatureRequest {
+  // identity_id is the unique identity ULID.
+  string identity_id = 1 [(buf.validate.field).string.len = 26];
+  // raw_signed_payload is the serialized payload signed while offline [p. 23].
+  bytes raw_signed_payload = 2 [(buf.validate.field).bytes.min_len = 1];
+  // signature is the signature string produced by the client.
+  string signature = 3 [(buf.validate.field).string.min_len = 5];
+}
+
+// VerifyOfflineSignatureResponse returns verification result.
+message VerifyOfflineSignatureResponse {
+  // is_valid is true if the signature is verified.
+  bool is_valid = 1;
+}

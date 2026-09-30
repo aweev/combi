@@ -1,0 +1,86 @@
+{
+    "Metadata": {
+    "title": "CAST | Propulsé par Combi",
+    "description": "Tout se sait. Rien n'est à l'abri."
+  },
+  "Common": {
+    "viewAll": "VOIR TOUT",
+    "shareToStatus": "En Statut",
+    "castAgain": "Relancer"
+  },
+  "Navigation": {
+    "home": "Accueil",
+    "squads": "Cliques",
+    "court": "Cour",
+    "arena": "Arène",
+    "vault": "Coffre"
+  },
+  "Execution": {
+    "decrypting": "Déchiffrement de la vérité...",
+    "verdictSealed": "Verdict Scellé",
+    "yourSquadRuled": "VOTRE CLIQUE A DÉCIDÉ.",
+    "truthComesOut": "La vérité finit toujours par se savoir.",
+    "targetAcquired": "Cible Verrouillée",
+    "finalTally": "Score Final",
+    "mostLikelyTo": "Le plus susceptible de",
+    "shareYourVerdict": "Partagez votre verdict",
+    "swipeStyles": "Glissez les styles",
+    "iGotCasted": "J'AI ÉTÉ CASTÉ",
+    "asThePerson": "Comme étant",
+    "mySquadVotedMe": "Ma clique m'a élu",
+    "theyAreNotWrong": "Ils n'ont pas tort.",
+    "squadConsensus": "Consensus de la clique",
+    "theJury": "Le Jury",
+    "identityProtected": "Identité Protégée",
+    "agreed": "Approuvé",
+    "denied": "Refusé",
+    "burnBook": "Carnet de Ragots",
+    "entry": "Entrée",
+    "shareTitle": "J'ai été casté",
+    "shareText": "Ma clique vient de m'exposer sur CAST. Rejoins pour voir ce qu'ils ont dit.",
+    "copiedSuccess": "Lien copié dans le presse-papiers !"
+  },
+  "Results": {
+    "pageTitle": "Résultats de la Clique",
+    "sessionComplete": "Session Terminée",
+    "theTruth": "La Vérité",
+    "isOut": "a éclaté.",
+    "players": "{count} Joueurs",
+    "question": "Question {num}",
+    "votes": "Votes",
+    "playAgain": "Rejouer",
+    "shareDeck": "Partager le jeu",
+    "shareDeckText": "Nous venons de jouer à {deckName}. La vérité a éclaté. Jouez avec votre clique.",
+    "copiedSuccess": "Lien du jeu copié !"
+  },
+  "Decks": {
+    "pageTitle": "Decks",
+    "chooseYour": "Choisissez votre",
+    "weapon": "arme.",
+    "truthsCastToday": "{count} vérités castées aujourd'hui",
+    "courtroomRules": "La Cour",
+    "courtroomTooltipDesc": "Vos votes sont anonymes. Votre clique connaîtra le résultat, mais jamais qui a voté.",
+    "catAll": "Tout",
+    "catChaos": "Chaos",
+    "catLoveLies": "Amour & Mensonges",
+    "catCampus": "Campus",
+    "catMoney": "Argent",
+    "catCreator": "Créateur",
+    "catSponsored": "Sponsorisé",
+    "innerCourtOnly": "Inner Court Uniquement",
+    "presentedBy": "Présenté par {brand}",
+    "castTimes": "Joué {count} fois.",
+    "playThisCast": "Jouer ce Cast",
+    "yourBurnBook": "Votre Burn Book :",
+    "verdictsPending": "{count} verdicts en attente."
+  },
+  "Courtroom": {
+    "pageTitle": "La Cour",
+    "inSession": "La Cour est ouverte.",
+    "anonymousWarning": "Vos votes sont anonymes. Votre clique connaîtra le résultat.",
+    "tapToCast": "Touchez un visage pour rendre votre verdict.",
+    "skip": "Passer",
+    "finalQuestion": "Dernière question. Ne la gâchez pas.",
+    "progress": "{current} sur {total} questions"
+  }
+}

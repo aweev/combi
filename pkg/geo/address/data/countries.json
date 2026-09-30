@@ -1,0 +1,48 @@
+{
+    "NG": {
+        "required": [
+            "Line1",
+            "City",
+            "LGA",
+            "Region"
+        ]
+    },
+    "KE": {
+        "required": [
+            "Line1",
+            "City",
+            "County"
+        ]
+    },
+    "CM": {
+        "required": [
+            "Line1",
+            "City",
+            "Region"
+        ]
+    },
+    "ET": {
+        "required": [
+            "SubCity",
+            "Woreda",
+            "Kebele",
+            "City"
+        ]
+    },
+    "CD": {
+        "required": [
+            "Line1",
+            "Quartier",
+            "Commune",
+            "City"
+        ]
+    },
+    "ZA": {
+        "required": [
+            "Line1",
+            "City",
+            "Region",
+            "PostalCode"
+        ]
+    }
+}

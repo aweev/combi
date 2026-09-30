@@ -1,0 +1,102 @@
+# platform-server / workflow-engine shared configuration.
+#
+# Loaded by pkg/config.Load: search order "." / ./config / ../config, with
+# NGO_-prefixed env vars overriding individual values (NGO_DATABASE_PASSWORD
+# overrides database.password, etc). Production secret values must come from
+# env vars — loader.go rejects insecure defaults when env=production.
+#
+# Host port assignment (consolidated topology, plan.md):
+#   platform-server gRPC ... :50051 (server.grpcPort)
+#   workflow-engine ......... no listener (workers pull from Temporal)
+
+env: development
+
+server:
+  grpcPort: 50051
+  shutdownTimeout: 30s
+
+log:
+  level: "info"
+
+database:
+  host: "127.0.0.1"
+  port: 5432
+  user: "combi"
+  password: ""      # env: NGO_DATABASE_PASSWORD
+  dbname: "combi"
+  sslmode: "disable"
+  maxOpenConns: 25
+  maxIdleConns: 25
+  connMaxLifetime: 5m
+
+redis:
+  host: "127.0.0.1"
+  port: 6379
+  db: 0
+  poolSize: 100
+  minIdleConns: 10
+  maxRetries: 5
+  dialTimeout: 10s
+  readTimeout: 10s
+  writeTimeout: 10s
+  enableTracing: false
+
+nats:
+  url: "nats://127.0.0.1:4222"
+
+eventBus:
+  channelPrefix: "combi:events:"
+  dlqSuffix: ":dlq"
+  maxRetries: 3
+  retryDelay: 200ms
+  reaperPollInterval: 10s
+  reaperGracePeriod: 30s
+
+temporal:
+  hostPort: "127.0.0.1:7233"
+  namespace: "default"
+
+monitoring:
+  prometheusURL: "http://localhost:9090"
+  evaluationInterval: "1m"
+
+trace:
+  enabled: true
+  serviceName: "combi-platform-server"
+  endpoint: "localhost:4317"
+
+queue:
+  webhookSecret: "whsec_change_me_in_prod_12345"
+
+rateLimiter:
+  enabled: true
+  limits:
+    "public_api": "100/m"
+    "auth_login": "5/m"
+
+circuitBreaker:
+  enabled: true
+  interval: 20s
+  timeout: 30s
+  failureThreshold: 0.5
+  successThreshold: 2
+
+auth:
+  maxFailedLogins: 5
+  lockoutDuration: 15m
+  passwordPolicy:
+    minLength: 12
+    requireUppercase: true
+    requireLowercase: true
+    requireNumbers: true
+    requireSpecialChars: true
+  jwt:
+    issuer: "combi"
+    accessTTL: 15m
+    refreshTTL: 720h
+    accessSecret: "local-dev-secret-key-123456"
+    refreshSecret: "local-dev-refresh-key-123456"
+  mfa:
+    totpIssuer: "Combi Platform"
+  totpEncryptionKey: "12345678901234567890123456789012"
+  auditEncryptionKey: "12345678901234567890123456789012"

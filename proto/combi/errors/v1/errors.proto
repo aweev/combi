@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package combi.errors.v1;
+
+option go_package = "github.com/combi/gen/go/combi/errors/v1;errorsv1";
+
+import "buf/validate/validate.proto";
+
+// ErrorEnvelope defines the strict, standardized format returned on any API failure [p. 32].
+// Best practice: serialize this structure as Metadata inside status.Status details blocks [3.1].
+message ErrorEnvelope {
+  // Standardized uppercase machine error code (e.g., "PAYMENT_LIMIT_EXCEEDED") [p. 32]
+  string code = 1 [(buf.validate.field).string.pattern = "^[A-Z_]{5,50}$"];
+
+  // Localized human-readable description of the failure [p. 32].
+  string message = 2 [(buf.validate.field).string.min_len = 3];
+
+  // Specific request field that failed validation rules (only returned on 422 validations) [p. 32].
+  string field = 3;
+
+  // UUID corresponding to the transaction trace for debugging purposes [p. 32].
+  string trace_id = 4 [(buf.validate.field).string.min_len = 1];
+
+  // Advises client PWA if it is safe to retry this transaction automatically [p. 32].
+  bool is_retryable = 5;
+}

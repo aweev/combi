@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+package combi.consent.v1;
+
+option go_package = "github.com/combi/gen/go/combi/consent/v1;consentv1";
+
+import "google/protobuf/timestamp.proto";
+import "buf/validate/validate.proto";
+
+// ConsentPrivacyService manages statutory confirmations and profile privacy mode enforcements [p. 25, 26].
+service ConsentPrivacyService {
+  // RecordLegalConsent captures legal agreement milestones [p. 25, 26].
+  rpc RecordLegalConsent (RecordLegalConsentRequest) returns (RecordLegalConsentResponse);
+
+  // UpdatePrivacyMode toggles the visibility of the user's statistics [p. 25].
+  rpc UpdatePrivacyMode (UpdatePrivacyModeRequest) returns (UpdatePrivacyModeResponse);
+}
+
+// ConsentType identifies the legal agreement milestone.
+enum ConsentType {
+  // CONSENT_TYPE_UNSPECIFIED is the default, unused fallback value.
+  CONSENT_TYPE_UNSPECIFIED = 0;
+  // CONSENT_TYPE_TERMS_OF_SERVICE indicates Terms of Service acceptance [p. 4, 26].
+  CONSENT_TYPE_TERMS_OF_SERVICE = 1;
+  // CONSENT_TYPE_AGE_GATE_18 indicates strict age confirmation (18+) [p. 21, 26].
+  CONSENT_TYPE_AGE_GATE_18       = 2;
+  // CONSENT_TYPE_VOTE_GUIDELINES indicates spirit of the game agreement [p. 26].
+  CONSENT_TYPE_VOTE_GUIDELINES   = 3;
+}
+
+// PrivacyMode identifies the profile visibility level.
+enum PrivacyMode {
+  // PRIVACY_MODE_UNSPECIFIED is the default, unused fallback value.
+  PRIVACY_MODE_UNSPECIFIED = 0;
+  // PRIVACY_MODE_PUBLIC indicates profile visible to all campus [p. 25].
+  PRIVACY_MODE_PUBLIC      = 1;
+  // PRIVACY_MODE_SQUAD_ONLY indicates profile visible only to squad [p. 25].
+  PRIVACY_MODE_SQUAD_ONLY  = 2;
+}
+
+// RecordLegalConsentRequest is the recording payload.
+message RecordLegalConsentRequest {
+  // identity_id is the unique identity ULID.
+  string identity_id = 1 [(buf.validate.field).string.len = 26];
+  // consent_type classifies the legal agreement.
+  ConsentType consent_type = 2;
+  // client_ip is the client IP [p. 21].
+  string client_ip = 3 [(buf.validate.field).string.ip = true];
+  // device_hash is the target hardware fingerprint.
+  string device_hash = 4 [(buf.validate.field).string.min_len = 16];
+}
+
+// RecordLegalConsentResponse returns legal agreement status.
+message RecordLegalConsentResponse {
+  // success flags if legal agreement completed.
+  bool success = 1;
+  // recorded_at tracks when the record was registered.
+  google.protobuf.Timestamp recorded_at = 2;
+}
+
+// UpdatePrivacyModeRequest is the payload to modify visibility.
+message UpdatePrivacyModeRequest {
+  // identity_id is the unique identity ULID.
+  string identity_id = 1 [(buf.validate.field).string.len = 26];
+  // requested_mode is the visibility mode selected.
+  PrivacyMode requested_mode = 2;
+}
+
+// UpdatePrivacyModeResponse returns updated visibility mode.
+message UpdatePrivacyModeResponse {
+  // active_mode is the active visibility mode.
+  PrivacyMode active_mode = 1;
+  // updated_at is when visibility mode was updated.
+  google.protobuf.Timestamp updated_at = 2;
+}

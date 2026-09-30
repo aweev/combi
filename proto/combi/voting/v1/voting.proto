@@ -1,0 +1,158 @@
+syntax = "proto3";
+
+package combi.voting.v1;
+
+option go_package = "github.com/combi/gen/go/combi/voting/v1;votingv1";
+
+import "google/protobuf/timestamp.proto";
+import "buf/validate/validate.proto";
+
+// CourtroomService orchestrates standard/sponsored decks, active sessions, and voting.
+service CourtroomService {
+  // ListDecks retrieves category-sorted decks of voting prompts [p. 7, 37].
+  rpc ListDecks (ListDecksRequest) returns (ListDecksResponse);
+  // GetDeckQuestions retrieves active questions for a target deck [p. 22].
+  rpc GetDeckQuestions (GetDeckQuestionsRequest) returns (GetDeckQuestionsResponse);
+  // CastVote submits a standard courtroom vote (idempotent, supports abstention) [p. 22].
+  rpc CastVote (CastVoteRequest) returns (CastVoteResponse);
+  // GetSquadScoreboard retrieves consolidated scoreboard results.
+  rpc GetSquadScoreboard (GetSquadScoreboardRequest) returns (GetSquadScoreboardResponse);
+}
+
+// DeckCategory classifies the category of the deck.
+enum DeckCategory {
+  // DECK_CATEGORY_UNSPECIFIED is the default, unused fallback value.
+  DECK_CATEGORY_UNSPECIFIED = 0;
+  // DECK_CATEGORY_CHAOS represents the Chaos category [p. 7].
+  DECK_CATEGORY_CHAOS       = 1;
+  // DECK_CATEGORY_LOVE_LIES represents the Love & Lies category [p. 7].
+  DECK_CATEGORY_LOVE_LIES   = 2;
+  // DECK_CATEGORY_MONEY represents the Who's the Broker? category [p. 7].
+  DECK_CATEGORY_MONEY       = 3;
+  // DECK_CATEGORY_CAMPUS represents the Campus Confessions category [p. 7].
+  DECK_CATEGORY_CAMPUS      = 4;
+  // DECK_CATEGORY_COMMUNITY represents the Community Casts category [p. 7].
+  DECK_CATEGORY_COMMUNITY   = 5;
+  // DECK_CATEGORY_SPONSORED represents sponsored brand decks [p. 7].
+  DECK_CATEGORY_SPONSORED   = 6;
+}
+
+// Deck represents a voting deck.
+message Deck {
+  // id is the unique deck ULID.
+  string id = 1 [(buf.validate.field).string.len = 26];
+  // slug is the unique identifier string used in client routing.
+  string slug = 2;
+  // title is the title of the deck.
+  string title = 3;
+  // description is additional description of the deck.
+  string description = 4;
+  // category classifies the deck category.
+  DeckCategory category = 5;
+  // is_premium_only indicates if the deck is premium-only.
+  bool is_premium_only = 6;
+  // sponsored_by represents the sponsor brand label.
+  string sponsored_by = 7;
+  // question_count tracks active questions.
+  int32 question_count = 8;
+  // play_count tracks play volume.
+  int32 play_count = 9;
+  // created_at is when the record was registered.
+  google.protobuf.Timestamp created_at = 10;
+}
+
+// Question represents a standard courtroom question.
+message Question {
+  // id is the unique question ULID.
+  string id = 1 [(buf.validate.field).string.len = 26];
+  // prompt_text is the prompt text of the question.
+  string prompt_text = 2;
+  // index is the question index.
+  int32 index = 3;
+}
+
+// ListDecksRequest is the deck list query payload.
+message ListDecksRequest {
+  // campus is the target campus filter.
+  string campus = 1;
+  // category_filter classifies the deck category.
+  DeckCategory category_filter = 2;
+  // limit is the maximum decks to return.
+  int32 limit = 3 [(buf.validate.field).int32.lte = 100];
+  // offset is the query offset.
+  int32 offset = 4;
+}
+
+// ListDecksResponse returns the list of decks.
+message ListDecksResponse {
+  // decks is the list of active decks.
+  repeated Deck decks = 1;
+}
+
+// GetDeckQuestionsRequest is the questions query payload.
+message GetDeckQuestionsRequest {
+  // deck_id is the unique deck ULID.
+  string deck_id = 1 [(buf.validate.field).string.len = 26];
+}
+
+// GetDeckQuestionsResponse returns deck questions.
+message GetDeckQuestionsResponse {
+  // questions is the list of active questions.
+  repeated Question questions = 1;
+}
+
+// CastVoteRequest is the vote submission payload.
+message CastVoteRequest {
+  // deck_id is the unique deck ULID.
+  string deck_id = 1 [(buf.validate.field).string.len = 26];
+  // question_id is the unique question ULID.
+  string question_id = 2 [(buf.validate.field).string.len = 26];
+  // squad_id is the target squad ULID.
+  string squad_id = 3 [(buf.validate.field).string.len = 26];
+  // voter_identity_id is the unique identity ULID of the voter.
+  string voter_identity_id = 4 [(buf.validate.field).string.len = 26];
+  // target_identity_id is the unique identity ULID of the target.
+  string target_identity_id = 5;
+  // idempotency_key prevents duplicate voting on retry.
+  string idempotency_key = 6 [(buf.validate.field).string.uuid = true];
+}
+
+// CastVoteResponse returns vote status.
+message CastVoteResponse {
+  // success flags if vote completed.
+  bool success = 1;
+  // session_complete is true if session completed.
+  bool session_complete = 2;
+}
+
+// ScoreboardEntry contains scoring details.
+message ScoreboardEntry {
+  // target_identity_id is the unique identity ULID of the target.
+  string target_identity_id = 1 [(buf.validate.field).string.len = 26];
+  // vote_count is the total votes received.
+  int32 vote_count = 2;
+  // percentage is the percentage of votes received.
+  double percentage = 3;
+}
+
+// GetSquadScoreboardRequest is the scoreboard query payload.
+message GetSquadScoreboardRequest {
+  // squad_id is the target squad ULID.
+  string squad_id = 1 [(buf.validate.field).string.len = 26];
+  // deck_id is the unique deck ULID.
+  string deck_id = 2 [(buf.validate.field).string.len = 26];
+}
+
+// GetSquadScoreboardResponse returns scoreboard entries.
+message GetSquadScoreboardResponse {
+  // deck_id is the unique deck ULID.
+  string deck_id = 1 [(buf.validate.field).string.len = 26];
+  // squad_id is the target squad ULID.
+  string squad_id = 2 [(buf.validate.field).string.len = 26];
+  // entries is the list of scoreboard entries.
+  repeated ScoreboardEntry entries = 3;
+  // total_votes_cast is the total votes received.
+  int32 total_votes_cast = 4;
+  // total_abstentions is the total abstentions.
+  int32 total_abstentions = 5;
+}

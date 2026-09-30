@@ -1,0 +1,151 @@
+syntax = "proto3";
+
+package combi.messaging.v1;
+
+option go_package = "github.com/combi/gen/go/combi/messaging/v1;messagingv1";
+
+import "google/protobuf/timestamp.proto";
+import "buf/validate/validate.proto";
+
+// MessagingService coordinates real-time squad chat lobbies, voice storage references, and active presence.
+service MessagingService {
+  // SendMessage dispatches a text, voice note, or system message to an active squad lobby [p. 5].
+  rpc SendMessage (SendMessageRequest) returns (SendMessageResponse);
+  // StreamLobby opens a real-time server-streaming connection for squad chat and presence events [p. 5].
+  rpc StreamLobby (StreamLobbyRequest) returns (stream StreamLobbyResponse);
+  // GetLobbyHistory retrieves paginated historical messages for a squad.
+  rpc GetLobbyHistory (GetLobbyHistoryRequest) returns (GetLobbyHistoryResponse);
+  // UpdatePresence updates and broadcasts a user's active/inactive state [p. 5].
+  rpc UpdatePresence (UpdatePresenceRequest) returns (UpdatePresenceResponse);
+  // MarkAsRead resets unread message counters for a squad [p. 5].
+  rpc MarkAsRead (MarkAsReadRequest) returns (MarkAsReadResponse);
+}
+
+// MessageType classifies the format of the chat message.
+enum MessageType {
+  // MESSAGE_TYPE_UNSPECIFIED is the default, unused fallback value.
+  MESSAGE_TYPE_UNSPECIFIED = 0;
+  // MESSAGE_TYPE_TEXT represents standard user-generated text.
+  MESSAGE_TYPE_TEXT        = 1;
+  // MESSAGE_TYPE_VOICE represents an audio file URI [p. 5, 37].
+  MESSAGE_TYPE_VOICE       = 2;
+  // MESSAGE_TYPE_SYSTEM represents rich, automated courtroom or system events [p. 5].
+  MESSAGE_TYPE_SYSTEM      = 3;
+}
+
+// Message represents a single chat entry.
+message Message {
+  // id is the unique ULID identifying this message.
+  string id = 1 [(buf.validate.field).string.len = 26];
+  // squad_id is the target squad ULID.
+  string squad_id = 2 [(buf.validate.field).string.len = 26];
+  // sender_identity_id is the author's identity ULID (empty for system messages).
+  string sender_identity_id = 3;
+  // type determines message payload decoding rules.
+  MessageType type = 4;
+  // payload is the raw text, voice URI, or JSON metadata [p. 5, 37].
+  string payload = 5 [(buf.validate.field).string.min_len = 1];
+  // voice_duration_seconds is the duration in seconds for voice notes.
+  int32 voice_duration_seconds = 6;
+  // created_at is when the message was saved.
+  google.protobuf.Timestamp created_at = 7;
+}
+
+// Presence models a user's online state.
+message Presence {
+  // identity_id is the user's identity ULID.
+  string identity_id = 1 [(buf.validate.field).string.len = 26];
+  // is_online tracks if the user has an active connection.
+  bool is_online = 2;
+  // last_seen_at tracks the last recorded activity.
+  google.protobuf.Timestamp last_seen_at = 3;
+}
+
+// SendMessageRequest is the chat creation payload.
+message SendMessageRequest {
+  // squad_id is the target squad ULID.
+  string squad_id = 1 [(buf.validate.field).string.len = 26];
+  // sender_identity_id is the author's identity ULID.
+  string sender_identity_id = 2;
+  // type classifies the message format.
+  MessageType type = 3;
+  // payload is the text or voice URI [p. 5, 37].
+  string payload = 4 [(buf.validate.field).string.min_len = 1];
+  // voice_duration_seconds tracks the duration of voice notes.
+  int32 voice_duration_seconds = 5;
+  // idempotency_key prevents duplicate delivery on network retry.
+  string idempotency_key = 6 [(buf.validate.field).string.uuid = true];
+}
+
+// SendMessageResponse returns the saved message.
+message SendMessageResponse {
+  // message is the persisted chat entry.
+  Message message = 1;
+}
+
+// StreamLobbyRequest initiates a real-time event pipeline.
+message StreamLobbyRequest {
+  // squad_id is the target squad ULID.
+  string squad_id = 1 [(buf.validate.field).string.len = 26];
+  // identity_id is the caller's identity ULID.
+  string identity_id = 2 [(buf.validate.field).string.len = 26];
+}
+
+// StreamLobbyResponse wraps real-time stream messages and updates.
+message StreamLobbyResponse {
+  // event is the polymorphic payload.
+  oneof event {
+    // message_received is emitted on a new message.
+    Message message_received = 1;
+    // presence_changed is emitted on online/offline state changes.
+    Presence presence_changed = 2;
+  }
+}
+
+// GetLobbyHistoryRequest is the query used to pull historical messages.
+message GetLobbyHistoryRequest {
+  // squad_id is the target squad ULID.
+  string squad_id = 1 [(buf.validate.field).string.len = 26];
+  // limit is the maximum messages to return.
+  int32 limit = 2 [(buf.validate.field).int32.lte = 100];
+  // cursor is the keyset pagination cursor.
+  string cursor = 3;
+}
+
+// GetLobbyHistoryResponse returns historical messages.
+message GetLobbyHistoryResponse {
+  // messages is the list of chat entries.
+  repeated Message messages = 1;
+  // next_cursor is the cursor for subsequent pages.
+  string next_cursor = 2;
+}
+
+// UpdatePresenceRequest modifies a user's active state.
+message UpdatePresenceRequest {
+  // squad_id is the target squad ULID.
+  string squad_id = 1 [(buf.validate.field).string.len = 26];
+  // identity_id is the user's identity ULID.
+  string identity_id = 2 [(buf.validate.field).string.len = 26];
+  // is_online flags the target state.
+  bool is_online = 3;
+}
+
+// UpdatePresenceResponse returns the execution status.
+message UpdatePresenceResponse {
+  // success flags if presence updated.
+  bool success = 1;
+}
+
+// MarkAsReadRequest clears unread notifications for a user.
+message MarkAsReadRequest {
+  // squad_id is the target squad ULID.
+  string squad_id = 1 [(buf.validate.field).string.len = 26];
+  // identity_id is the user's identity ULID.
+  string identity_id = 2 [(buf.validate.field).string.len = 26];
+}
+
+// MarkAsReadResponse returns the execution status.
+message MarkAsReadResponse {
+  // success flags if notifications cleared.
+  bool success = 1;
+}

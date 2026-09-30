@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+package combi.kyc.v1;
+
+option go_package = "github.com/combi/gen/go/combi/kyc/v1;kycv1";
+
+import "google/protobuf/timestamp.proto";
+import "buf/validate/validate.proto";
+
+// KycService handles official identity document checks required before large payouts [p. 17, 27].
+service KycService {
+  // SubmitKycDocuments uploads official government credentials to securely resolve withdrawal requests [p. 17, 27].
+  rpc SubmitKycDocuments (SubmitKycDocumentsRequest) returns (SubmitKycDocumentsResponse);
+  // GetKycStatus queries current verification review progress.
+  rpc GetKycStatus (GetKycStatusRequest) returns (GetKycStatusResponse);
+}
+
+// KycDocumentType identifies the format of the government credential.
+enum KycDocumentType {
+  // KYC_DOCUMENT_TYPE_UNSPECIFIED is the default, unused fallback value.
+  KYC_DOCUMENT_TYPE_UNSPECIFIED = 0;
+  // KYC_DOCUMENT_TYPE_NATIONAL_ID represents a state-issued identity card.
+  KYC_DOCUMENT_TYPE_NATIONAL_ID  = 1;
+  // KYC_DOCUMENT_TYPE_PASSPORT represents an international travel document.
+  KYC_DOCUMENT_TYPE_PASSPORT     = 2;
+  // KYC_DOCUMENT_TYPE_SELFIE represents a liveness facial capture [p. 30].
+  KYC_DOCUMENT_TYPE_SELFIE       = 3;
+}
+
+// VerificationState tracks the review milestones of the documents.
+enum VerificationState {
+  // VERIFICATION_STATE_UNSPECIFIED is the default, unused fallback value.
+  VERIFICATION_STATE_UNSPECIFIED = 0;
+  // VERIFICATION_STATE_NONE indicates no records exist.
+  VERIFICATION_STATE_NONE        = 1;
+  // VERIFICATION_STATE_PENDING indicates document review is active.
+  VERIFICATION_STATE_PENDING     = 2;
+  // VERIFICATION_STATE_VERIFIED indicates documents are fully approved.
+  VERIFICATION_STATE_VERIFIED    = 3;
+  // VERIFICATION_STATE_REJECTED indicates documents were declined [p. 17].
+  VERIFICATION_STATE_REJECTED    = 4;
+}
+
+// SubmitKycDocumentsRequest is the upload payload for verification documents.
+message SubmitKycDocumentsRequest {
+  // identity_id is the unique identity ULID.
+  string identity_id = 1 [(buf.validate.field).string.len = 26];
+  // document_type classifies the uploaded document.
+  KycDocumentType document_type = 2;
+  // secure_storage_uri is the secure location of the scanned image [p. 9].
+  string secure_storage_uri = 3 [(buf.validate.field).string.min_len = 5];
+  // document_legal_name is the legal name displayed on the document.
+  string document_legal_name = 4 [(buf.validate.field).string.min_len = 3];
+}
+
+// SubmitKycDocumentsResponse returns the initial review status.
+message SubmitKycDocumentsResponse {
+  // acknowledged flags if the upload was saved.
+  bool acknowledged = 1;
+  // current_state is the state of document review.
+  VerificationState current_state = 2;
+  // estimated_review_complete_by is the estimated completion target.
+  google.protobuf.Timestamp estimated_review_complete_by = 3;
+}
+
+// GetKycStatusRequest is the status query payload.
+message GetKycStatusRequest {
+  // identity_id is the unique identity ULID.
+  string identity_id = 1 [(buf.validate.field).string.len = 26];
+}
+
+// GetKycStatusResponse returns document verification milestones.
+message GetKycStatusResponse {
+  // state is the current verification state.
+  VerificationState state = 1;
+  // rejection_reason_code lists the reason if documents are declined [p. 17].
+  string rejection_reason_code = 2;
+  // verified_at is the timestamp when approval was granted.
+  google.protobuf.Timestamp verified_at = 3;
+}

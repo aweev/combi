@@ -1,0 +1,124 @@
+syntax = "proto3";
+
+package combi.arena.v1;
+
+option go_package = "github.com/combi/gen/go/combi/arena.v1;arenav1";
+
+import "google/protobuf/timestamp.proto";
+import "buf/validate/validate.proto";
+
+// ArenaService governs upcoming/live Tournaments and regional Squad Wars [p. 6, 27].
+service ArenaService {
+  // ListTournaments lists active, upcoming, and completed regional tournaments [p. 6, 27].
+  rpc ListTournaments (ListTournamentsRequest) returns (ListTournamentsResponse);
+
+  // JoinTournament joins a tournament, deducting the entry fee in Coins [p. 6, 28].
+  rpc JoinTournament (JoinTournamentRequest) returns (JoinTournamentResponse);
+
+  // StreamLiveScores establishes a server-streaming connection (emits Delta updates every 10s) [p. 6, 28].
+  rpc StreamLiveScores (StreamLiveScoresRequest) returns (stream StreamLiveScoresResponse);
+}
+
+// TournamentStatus tracks the operational lifecycle state of the tournament.
+enum TournamentStatus {
+  // TOURNAMENT_STATUS_UNSPECIFIED is the default, unused fallback value.
+  TOURNAMENT_STATUS_UNSPECIFIED = 0;
+  // TOURNAMENT_STATUS_UPCOMING indicates the tournament is scheduled.
+  TOURNAMENT_STATUS_UPCOMING    = 1;
+  // TOURNAMENT_STATUS_ACTIVE indicates the tournament is live.
+  TOURNAMENT_STATUS_ACTIVE      = 2;
+  // TOURNAMENT_STATUS_COMPLETED indicates the tournament has concluded.
+  TOURNAMENT_STATUS_COMPLETED   = 3;
+  // TOURNAMENT_STATUS_CANCELLED indicates the tournament was aborted.
+  TOURNAMENT_STATUS_CANCELLED   = 4;
+}
+
+// Tournament represents a regional Squad War [p. 6, 27].
+message Tournament {
+  // id is the unique tournament ULID.
+  string id = 1 [(buf.validate.field).string.len = 26];
+  // title is the display title of the tournament.
+  string title = 2 [(buf.validate.field).string.min_len = 3];
+  // status tracks the operational lifecycle state.
+  TournamentStatus status = 3;
+  
+  // entry_fee_coins is the entry fee locked in virtual coins (e.g. 100 Coins) [p. 6, 28].
+  int32 entry_fee_coins = 4 [(buf.validate.field).int32.gt = 0];
+  
+  // prize_pool_subunit is the cash or coin rewards value pool [p. 11, 28].
+  int64 prize_pool_subunit = 5;
+  // reward_currency is the payout currency (e.g., "XAF", "NGN", "COINS").
+  string reward_currency = 6;
+  
+  // min_squad_members is the minimum squad size criteria [p. 6, 28].
+  int32 min_squad_members = 7 [(buf.validate.field).int32.gte = 4];
+  // registered_squads_count tracks enrolled teams.
+  int32 registered_squads_count = 8;
+  
+  // starts_at is when the tournament begins.
+  google.protobuf.Timestamp starts_at = 9;
+  // ends_at is when the tournament concludes.
+  google.protobuf.Timestamp ends_at = 10;
+}
+
+// LiveScoreboardEntry represents a single scoreboard entry.
+message LiveScoreboardEntry {
+  // rank is the current scoreboard rank.
+  int32 rank = 1;
+  // squad_id is the unique squad ULID.
+  string squad_id = 2;
+  // squad_name is the display name of the squad.
+  string squad_name = 3;
+  // total_score is the cumulative score index.
+  int32 total_score = 4;
+  // session_completed_flag indicates if the session is complete.
+  bool session_completed_flag = 5;
+}
+
+// ListTournamentsRequest is the query payload.
+message ListTournamentsRequest {
+  // region_id is the campus or city filter [p. 6, 11].
+  string region_id = 1;
+  // status_filter is the operational lifecycle filter.
+  TournamentStatus status_filter = 2;
+}
+
+// ListTournamentsResponse returns active tournaments.
+message ListTournamentsResponse {
+  // tournaments is the list of active tournaments.
+  repeated Tournament tournaments = 1;
+}
+
+// JoinTournamentRequest is the enrollment payload.
+message JoinTournamentRequest {
+  // tournament_id is the target tournament ULID.
+  string tournament_id = 1 [(buf.validate.field).string.len = 26];
+  // squad_id is the unique squad ULID.
+  string squad_id = 2 [(buf.validate.field).string.len = 26];
+  // captain_identity_id is the unique identity ULID of the captain.
+  string captain_identity_id = 3 [(buf.validate.field).string.len = 26];
+  // idempotency_key prevents duplicate enrollments on retry.
+  string idempotency_key = 4 [(buf.validate.field).string.uuid = true];
+}
+
+// JoinTournamentResponse returns enrollment status.
+message JoinTournamentResponse {
+  // success flags if enrollment completed.
+  bool success = 1;
+  // lock_confirmed_at is when the enrollment was confirmed.
+  google.protobuf.Timestamp lock_confirmed_at = 2;
+}
+
+// StreamLiveScoresRequest initiates real-time scoreboard events.
+message StreamLiveScoresRequest {
+  // tournament_id is the target tournament ULID.
+  string tournament_id = 1 [(buf.validate.field).string.len = 26];
+}
+
+// StreamLiveScoresResponse wraps scoreboard updates.
+message StreamLiveScoresResponse {
+  // entries is the list of live scoreboard entries.
+  repeated LiveScoreboardEntry entries = 1;
+  // last_updated_at is when the scoreboard was updated.
+  google.protobuf.Timestamp last_updated_at = 2;
+}

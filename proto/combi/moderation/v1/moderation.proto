@@ -1,0 +1,106 @@
+syntax = "proto3";
+
+package combi.moderation.v1;
+
+option go_package = "github.com/combi/gen/go/combi/moderation/v1;moderationv1";
+
+import "google/protobuf/timestamp.proto";
+import "buf/validate/validate.proto";
+
+// ModerationService coordinates custom deck scanning, user reporting, and target bans [p. 26, 33, 42].
+service ModerationService {
+  // ScanCustomDeck scans custom decks before publication using AI evaluation [p. 26, 40].
+  rpc ScanCustomDeck (ScanCustomDeckRequest) returns (ScanCustomDeckResponse);
+  // SubmitReport files a report against a suspicious deck or targeted vote prompt [p. 33].
+  rpc SubmitReport (SubmitReportRequest) returns (SubmitReportResponse);
+  // ApplyBanHammer manages blocklists, shadowbans, and hardware constraints [p. 26, 33, 42].
+  rpc ApplyBanHammer (ApplyBanHammerRequest) returns (ApplyBanHammerResponse);
+}
+
+// ModerationAction defines the status after content scanning.
+enum ModerationAction {
+  // MODERATION_ACTION_UNSPECIFIED is the default, unused fallback value.
+  MODERATION_ACTION_UNSPECIFIED = 0;
+  // MODERATION_ACTION_PASS indicates the deck was approved.
+  MODERATION_ACTION_PASS        = 1;
+  // MODERATION_ACTION_SHADOWBAN indicates silent concealment [p. 26].
+  MODERATION_ACTION_SHADOWBAN   = 2;
+  // MODERATION_ACTION_REJECT indicates hard rejection [p. 34].
+  MODERATION_ACTION_REJECT      = 3;
+}
+
+// ReportCategory classifies user harassment categories.
+enum ReportCategory {
+  // REPORT_CATEGORY_UNSPECIFIED is the default, unused fallback value.
+  REPORT_CATEGORY_UNSPECIFIED        = 0;
+  // REPORT_CATEGORY_TARGETED_HARASSMENT indicates targeted harassment [p. 33].
+  REPORT_CATEGORY_TARGETED_HARASSMENT = 1;
+  // REPORT_CATEGORY_REAL_NAMES_ADDRESS indicates PII leak [p. 26, 33].
+  REPORT_CATEGORY_REAL_NAMES_ADDRESS = 2;
+  // REPORT_CATEGORY_MENTAL_HEALTH_RISK indicates self-harm keywords [p. 34].
+  REPORT_CATEGORY_MENTAL_HEALTH_RISK = 3;
+  // REPORT_CATEGORY_SPAM indicates spam behavior.
+  REPORT_CATEGORY_SPAM               = 4;
+}
+
+// ScanCustomDeckRequest is the payload sent to AI scanning.
+message ScanCustomDeckRequest {
+  // creator_id is the unique identity ULID.
+  string creator_id = 1 [(buf.validate.field).string.len = 26];
+  // deck_title is the title of the custom deck.
+  string deck_title = 2 [(buf.validate.field).string.min_len = 3];
+  // questions is the list of prompt strings [p. 26].
+  repeated string questions = 3 [(buf.validate.field).repeated = {min_items: 5, max_items: 20}];
+}
+
+// ScanCustomDeckResponse returns content audit results.
+message ScanCustomDeckResponse {
+  // action is the decision of the moderation scan.
+  ModerationAction action = 1;
+  // reason_code explains the decision [p. 27].
+  string reason_code = 2;
+  // flagged_question_indices lists indices of violations.
+  repeated int32 flagged_question_indices = 3;
+}
+
+// SubmitReportRequest is the reporting payload.
+message SubmitReportRequest {
+  // reporter_identity_id is the unique identity ULID of the reporter.
+  string reporter_identity_id = 1 [(buf.validate.field).string.len = 26];
+  // reported_deck_id is the unique identity ULID of the reported deck.
+  string reported_deck_id = 2 [(buf.validate.field).string.len = 26];
+  // reported_question_id is the specific reported question ID.
+  string reported_question_id = 3;
+  // category classifies the report category.
+  ReportCategory category = 4;
+  // comment is additional contextual description.
+  string comment = 5 [(buf.validate.field).string.max_len = 500];
+}
+
+// SubmitReportResponse returns the saved report details.
+message SubmitReportResponse {
+  // ticket_id is the unique ULID identifying this report ticket.
+  string ticket_id = 1 [(buf.validate.field).string.len = 26];
+  // acknowledged flags if the report was saved.
+  bool acknowledged = 2;
+}
+
+// ApplyBanHammerRequest locks out malicious users or hardware.
+message ApplyBanHammerRequest {
+  // target_identity_id is the unique identity ULID.
+  string target_identity_id = 1 [(buf.validate.field).string.len = 26];
+  // ban_type determines block level [p. 42].
+  string ban_type = 2 [(buf.validate.field).string.pattern = "^(shadowban|device_ban|ip_range_ban)$"];
+  // reason justifies the action.
+  string reason = 3 [(buf.validate.field).string.min_len = 5];
+  // actor_id is the identity ULID of the administrator.
+  string actor_id = 4 [(buf.validate.field).string.len = 26];
+}
+
+// ApplyBanHammerResponse returns the execution details.
+message ApplyBanHammerResponse {
+  // success flags if block completed.
+  bool success = 1;
+  // expires_at is the timestamp when the block ends.
+  google.protobuf.Timestamp expires_at = 2;
+}

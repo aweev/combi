@@ -1,0 +1,110 @@
+syntax = "proto3";
+
+package combi.enterprise.v1;
+
+option go_package = "github.com/combi/gen/go/combi/enterprise/v1;enterprisev1";
+
+import "google/protobuf/timestamp.proto";
+import "buf/validate/validate.proto";
+
+// EnterpriseService manages isolated B2B workspaces, Safe Mode enforcements, and employee sentiment aggregates.
+service EnterpriseService {
+  // GetCulturePulseDashboard returns aggregated team-sentiment analytics to HR managers [p. 24, 41].
+  rpc GetCulturePulseDashboard (GetCulturePulseDashboardRequest) returns (GetCulturePulseDashboardResponse);
+  // ScheduleCulturePulse configures a recurring team pulse sequence (e.g. "Friday Energy Check") [p. 24, 41].
+  rpc ScheduleCulturePulse (ScheduleCulturePulseRequest) returns (ScheduleCulturePulseResponse);
+  // CreatePrivateSquad creates an isolated private squad invisible to public registries [p. 24, 41].
+  rpc CreatePrivateSquad (CreatePrivateSquadRequest) returns (CreatePrivateSquadResponse);
+}
+
+// SafeModeLevel identifies the Safe Mode constraint level.
+enum SafeModeLevel {
+  // SAFE_MODE_LEVEL_UNSPECIFIED is the default, unused fallback value.
+  SAFE_MODE_LEVEL_UNSPECIFIED = 0;
+  // SAFE_MODE_LEVEL_STRICT indicates positive-only prompts only [p. 24].
+  SAFE_MODE_LEVEL_STRICT      = 1;
+  // SAFE_MODE_LEVEL_MODERATE indicates normal constraints.
+  SAFE_MODE_LEVEL_MODERATE    = 2;
+  // SAFE_MODE_LEVEL_OFF indicates no constraints.
+  SAFE_MODE_LEVEL_OFF         = 3;
+}
+
+// EnterpriseSquad represents a private squad [p. 24, 41].
+message EnterpriseSquad {
+  // id is the unique squad ULID.
+  string id = 1 [(buf.validate.field).string.len = 26];
+  // name is the display name of the squad.
+  string name = 2;
+  // department is the department of the squad.
+  string department = 3;
+  // safe_mode identifies the Safe Mode constraint level.
+  SafeModeLevel safe_mode = 4;
+}
+
+// SentimentTrendPoint contains sentiment stats.
+message SentimentTrendPoint {
+  // recorded_date is when the sentiment was recorded.
+  google.protobuf.Timestamp recorded_date = 1;
+  // aggregated_morale_score is the morale score index.
+  double aggregated_morale_score = 2;
+  // active_voters_count tracks active voters.
+  int32 active_voters_count = 3;
+}
+
+// GetCulturePulseDashboardRequest is the query payload.
+message GetCulturePulseDashboardRequest {
+  // organization_id is the unique organization ID.
+  string organization_id = 1 [(buf.validate.field).string.min_len = 1];
+  // manager_identity_id is the unique identity ULID of the manager.
+  string manager_identity_id = 2 [(buf.validate.field).string.len = 26];
+}
+
+// GetCulturePulseDashboardResponse returns organization sentiment metrics.
+message GetCulturePulseDashboardResponse {
+  // organization_name is the display name of the organization.
+  string organization_name = 1;
+  // active_squads is the list of active squads.
+  repeated EnterpriseSquad active_squads = 2;
+  // trends is the list of sentiment stats trends.
+  repeated SentimentTrendPoint trends = 3;
+}
+
+// ScheduleCulturePulseRequest is the scheduling payload.
+message ScheduleCulturePulseRequest {
+  // organization_id is the unique organization ID.
+  string organization_id = 1 [(buf.validate.field).string.min_len = 1];
+  // prompt_text is the prompt text of the pulse [p. 24].
+  string prompt_text = 2 [(buf.validate.field).string.min_len = 5];
+  // recurring_day_of_week tracks the day of week.
+  int32 recurring_day_of_week = 3 [(buf.validate.field).int32 = {gte: 1, lte: 7}];
+  // execution_time is when the pulse begins.
+  google.protobuf.Timestamp execution_time = 4;
+}
+
+// ScheduleCulturePulseResponse returns scheduling status.
+message ScheduleCulturePulseResponse {
+  // pulse_schedule_id is the unique pulse schedule ULID.
+  string pulse_schedule_id = 1 [(buf.validate.field).string.len = 26];
+  // success flags if schedule completed.
+  bool success = 2;
+}
+
+// CreatePrivateSquadRequest is the private squad creation payload.
+message CreatePrivateSquadRequest {
+  // organization_id is the unique organization ID.
+  string organization_id = 1 [(buf.validate.field).string.min_len = 1];
+  // name is the display name of the squad.
+  string name = 2 [(buf.validate.field).string.min_len = 3];
+  // department is the department of the squad.
+  string department = 3 [(buf.validate.field).string.min_len = 2];
+  // safe_mode identifies the Safe Mode constraint level.
+  SafeModeLevel safe_mode = 4;
+}
+
+// CreatePrivateSquadResponse returns the created private squad.
+message CreatePrivateSquadResponse {
+  // squad is the created private squad record.
+  EnterpriseSquad squad = 1;
+  // access_token is the invitation token [p. 41].
+  string access_token = 2;
+}

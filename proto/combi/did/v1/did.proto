@@ -1,0 +1,92 @@
+syntax = "proto3";
+
+package combi.did.v1;
+
+option go_package = "github.com/combi/gen/go/combi/did/v1;didv1";
+
+import "google/protobuf/timestamp.proto";
+import "buf/validate/validate.proto";
+
+// DidService coordinates decentralized identifier (DID) documents, key resolution, and verification methods.
+service DidService {
+  // CreateDIDDocument registers a new W3C-compliant DID Document.
+  rpc CreateDIDDocument (CreateDIDDocumentRequest) returns (CreateDIDDocumentResponse);
+  // ResolveDIDDocument resolves a DID string to retrieve its current public key.
+  rpc ResolveDIDDocument (ResolveDIDDocumentRequest) returns (ResolveDIDDocumentResponse);
+  // AddVerificationMethod appends a new verification method [p. 4].
+  rpc AddVerificationMethod (AddVerificationMethodRequest) returns (AddVerificationMethodResponse);
+}
+
+// VerificationMethod contains key metadata.
+message VerificationMethod {
+  // id is the unique verification method ID.
+  string id = 1 [(buf.validate.field).string.min_len = 5];
+  // type is the type of the key verification.
+  string type = 2;
+  // controller is the controller of the key verification.
+  string controller = 3;
+  // public_key_multibase is the public key multibase.
+  string public_key_multibase = 4 [(buf.validate.field).string.min_len = 10];
+}
+
+// DIDDocument represents a decentralized identifier document.
+message DIDDocument {
+  // id is the unique identifier string.
+  string id = 1 [(buf.validate.field).string.min_len = 5];
+  // context is the context of the DID Document.
+  repeated string context = 2;
+  // verification_methods contains key metadata.
+  repeated VerificationMethod verification_methods = 3;
+  // authentication_methods contains key metadata.
+  repeated string authentication_methods = 4;
+  // created_at is when the record was registered.
+  google.protobuf.Timestamp created_at = 5;
+  // updated_at tracks when the record was last modified.
+  google.protobuf.Timestamp updated_at = 6;
+}
+
+// CreateDIDDocumentRequest is the document creation payload.
+message CreateDIDDocumentRequest {
+  // identity_id is the unique identity ULID.
+  string identity_id = 1 [(buf.validate.field).string.len = 26];
+  // initial_public_key is the public key base.
+  string initial_public_key = 2 [(buf.validate.field).string.min_len = 10];
+  // key_type classifies the public key.
+  string key_type = 3;
+}
+
+// CreateDIDDocumentResponse returns the created document.
+message CreateDIDDocumentResponse {
+  // document is the created DID Document.
+  DIDDocument document = 1;
+}
+
+// ResolveDIDDocumentRequest is the resolution payload.
+message ResolveDIDDocumentRequest {
+  // did_uri is the unique identifier string.
+  string did_uri = 1 [(buf.validate.field).string.min_len = 5];
+}
+
+// ResolveDIDDocumentResponse returns the resolved document.
+message ResolveDIDDocumentResponse {
+  // document is the retrieved DID Document.
+  DIDDocument document = 1;
+}
+
+// AddVerificationMethodRequest is the method append payload.
+message AddVerificationMethodRequest {
+  // did_uri is the unique identifier string.
+  string did_uri = 1 [(buf.validate.field).string.min_len = 5];
+  // method is the verification method to append.
+  VerificationMethod method = 2;
+  // authorization_signature is the signature verifying authorization.
+  string authorization_signature = 3 [(buf.validate.field).string.min_len = 5];
+}
+
+// AddVerificationMethodResponse returns execution status.
+message AddVerificationMethodResponse {
+  // success flags if verification method was appended.
+  bool success = 1;
+  // updated_document is the updated DID Document.
+  DIDDocument updated_document = 2;
+}

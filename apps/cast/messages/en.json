@@ -1,0 +1,86 @@
+{
+    "Metadata": {
+    "title": "CAST | Powered by Combi",
+    "description": "Everything Casts. Nothing is safe."
+  },
+  "Common": {
+    "viewAll": "VIEW ALL",
+    "shareToStatus": "To Status",
+    "castAgain": "Cast Again"
+  },
+  "Navigation": {
+    "home": "Home",
+    "squads": "Squads",
+    "court": "Court",
+    "arena": "Arena",
+    "vault": "Vault"
+  },
+  "Execution": {
+    "decrypting": "Decrypting Truth...",
+    "verdictSealed": "Verdict Sealed",
+    "yourSquadRuled": "YOUR SQUAD RULED.",
+    "truthComesOut": "The truth always comes out.",
+    "targetAcquired": "Target Acquired",
+    "finalTally": "Final Tally",
+    "mostLikelyTo": "Most likely to",
+    "shareYourVerdict": "Share Your Verdict",
+    "swipeStyles": "Swipe styles",
+    "iGotCasted": "I GOT CASTED",
+    "asThePerson": "As the person",
+    "mySquadVotedMe": "My squad voted me",
+    "theyAreNotWrong": "They are not wrong.",
+    "squadConsensus": "Squad Consensus",
+    "theJury": "The Jury",
+    "identityProtected": "Identity Protected",
+    "agreed": "Agreed",
+    "denied": "Denied",
+    "burnBook": "Burn Book",
+    "entry": "Entry",
+    "shareTitle": "I got Casted",
+    "shareText": "My squad just exposed me on CAST. Join to see what they said.",
+    "copiedSuccess": "Link copied to clipboard!"
+  },
+  "Results": {
+    "pageTitle": "Squad Results",
+    "sessionComplete": "Session Complete",
+    "theTruth": "The Truth",
+    "isOut": "is out.",
+    "players": "{count} Players",
+    "question": "Question {num}",
+    "votes": "Votes",
+    "playAgain": "Play Again",
+    "shareDeck": "Share Deck",
+    "shareDeckText": "We just played {deckName}. The truth is out. Play it with your squad.",
+    "copiedSuccess": "Deck link copied to clipboard!"
+  },
+  "Decks": {
+  "pageTitle": "Decks",
+  "chooseYour": "Choose Your",
+  "weapon": "weapon.",
+  "truthsCastToday": "{count} truths Cast today",
+  "courtroomRules": "The Courtroom",
+  "courtroomTooltipDesc": "Your votes are anonymous. Your squad will know the result, but never who cast it.",
+  "catAll": "All",
+  "catChaos": "Chaos",
+  "catLoveLies": "Love & Lies",
+  "catCampus": "Campus",
+  "catMoney": "Money",
+  "catCreator": "Creator",
+  "catSponsored": "Sponsored",
+  "innerCourtOnly": "Inner Court Only",
+  "presentedBy": "Presented by {brand}",
+  "castTimes": "Cast {count} times.",
+  "playThisCast": "Play this Cast",
+  "yourBurnBook": "Your Burn Book:",
+  "verdictsPending": "{count} verdicts pending."
+},
+  "Courtroom": {
+    "pageTitle": "The Courtroom",
+    "inSession": "The Courtroom is in session.",
+    "anonymousWarning": "Your votes are anonymous. Your squad will know the result.",
+    "tapToCast": "Tap a face to Cast your verdict.",
+    "skip": "Skip",
+    "finalQuestion": "Final question. Make it count.",
+    "progress": "{current} of {total} questions"
+  }
+}

@@ -1,0 +1,84 @@
+syntax = "proto3";
+
+package combi.syndicate.v1;
+
+option go_package = "github.com/combi/gen/go/combi/syndicate/v1;syndicatev1";
+
+import "google/protobuf/timestamp.proto";
+import "buf/validate/validate.proto";
+
+// SyndicateService manages campus ambassadors (Mercenaries), referral generation, and payout tracking.
+service SyndicateService {
+  // RegisterAmbassador registers a campus ambassador and establishes their unique referral token [p. 30].
+  rpc RegisterAmbassador (RegisterAmbassadorRequest) returns (RegisterAmbassadorResponse);
+  // TrackConversion evaluates a PWA install event to verify if a referral conversion occurred [p. 30].
+  rpc TrackConversion (TrackConversionRequest) returns (TrackConversionResponse);
+  // GetAmbassadorMetrics returns referral commission progress, cleared earnings, and payout metrics [p. 30].
+  rpc GetAmbassadorMetrics (GetAmbassadorMetricsRequest) returns (GetAmbassadorMetricsResponse);
+}
+
+// ReferralConversion represents a single referral conversion event [p. 30].
+message ReferralConversion {
+  // referral_id is the unique referral ULID.
+  string referral_id = 1 [(buf.validate.field).string.len = 26];
+  // referred_identity_id is the unique identity ULID of the referred user.
+  string referred_identity_id = 2 [(buf.validate.field).string.len = 26];
+  // squad_minimum_reached is true if the referred user joins a squad containing 5+ members [p. 30].
+  bool squad_minimum_reached = 3;
+  // registered_at is when the conversion was saved.
+  google.protobuf.Timestamp registered_at = 4;
+}
+
+// RegisterAmbassadorRequest is the ambassador registration payload.
+message RegisterAmbassadorRequest {
+  // identity_id is the unique identity ULID.
+  string identity_id = 1 [(buf.validate.field).string.len = 26];
+  // campus_id is the target campus ID.
+  string campus_id = 2 [(buf.validate.field).string.min_len = 1];
+  // legal_name is the legal name of the ambassador.
+  string legal_name = 3 [(buf.validate.field).string.min_len = 3];
+}
+
+// RegisterAmbassadorResponse returns registration status.
+message RegisterAmbassadorResponse {
+  // referral_link is the generated referral link.
+  string referral_link = 1;
+  // affiliate_id is the generated affiliate ID.
+  string affiliate_id = 2 [(buf.validate.field).string.min_len = 1];
+}
+
+// TrackConversionRequest is the conversion tracking payload.
+message TrackConversionRequest {
+  // affiliate_id is the target affiliate ID.
+  string affiliate_id = 1 [(buf.validate.field).string.min_len = 1];
+  // referred_identity_id is the unique identity ULID of the referred user.
+  string referred_identity_id = 2 [(buf.validate.field).string.len = 26];
+  // client_device_hash is the fingerprint used to detect fraud [p. 31].
+  string client_device_hash = 3 [(buf.validate.field).string.min_len = 16];
+}
+
+// TrackConversionResponse returns tracking status.
+message TrackConversionResponse {
+  // registered_successfully flags if tracking completed.
+  bool registered_successfully = 1;
+  // conversion_id is the unique conversion ULID.
+  string conversion_id = 2 [(buf.validate.field).string.len = 26];
+}
+
+// GetAmbassadorMetricsRequest is the metrics query payload.
+message GetAmbassadorMetricsRequest {
+  // identity_id is the unique identity ULID.
+  string identity_id = 1 [(buf.validate.field).string.len = 26];
+}
+
+// GetAmbassadorMetricsResponse returns ambassador metrics.
+message GetAmbassadorMetricsResponse {
+  // total_installs_count is the total number of installs.
+  int32 total_installs_count = 1;
+  // qualified_conversions_count is the total number of qualified conversions.
+  int32 qualified_conversions_count = 2;
+  // cleared_commission_subunit is the cleared commission.
+  int64 cleared_commission_subunit = 3;
+  // currency is the commission currency.
+  string currency = 4;
+}

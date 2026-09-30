@@ -1,0 +1,133 @@
+syntax = "proto3";
+
+package combi.billing.v1;
+
+option go_package = "github.com/combi/gen/go/combi/billing/v1;billingv1";
+
+import "google/protobuf/timestamp.proto";
+import "buf/validate/validate.proto";
+
+// BillingService manages premium Inner Court subscription tiers and Immunity Shields.
+service BillingService {
+  // ListSubscriptionPlans retrieves available plans localized by user region [p. 13].
+  rpc ListSubscriptionPlans (ListSubscriptionPlansRequest) returns (ListSubscriptionPlansResponse);
+
+  // Subscribe initiates an Inner Court subscription upgrade flow [p. 29].
+  rpc Subscribe (SubscribeRequest) returns (SubscribeResponse);
+
+  // ToggleImmunityShield activates/Deactivates a user's Immunity Shield [p. 14, 38].
+  rpc ToggleImmunityShield (ToggleImmunityShieldRequest) returns (ToggleImmunityShieldResponse);
+
+  // GetSubscriptionDetails checks subscription details for a specific user.
+  rpc GetSubscriptionDetails (GetSubscriptionDetailsRequest) returns (GetSubscriptionDetailsResponse);
+}
+
+// SubscriptionStatus determines the active billing state of the subscription.
+enum SubscriptionStatus {
+  // SUBSCRIPTION_STATUS_UNSPECIFIED is the default, unused fallback value.
+  SUBSCRIPTION_STATUS_UNSPECIFIED = 0;
+  // SUBSCRIPTION_STATUS_ACTIVE indicates billing is fully approved.
+  SUBSCRIPTION_STATUS_ACTIVE      = 1;
+  // SUBSCRIPTION_STATUS_PAST_DUE indicates payment collection failed.
+  SUBSCRIPTION_STATUS_PAST_DUE    = 2;
+  // SUBSCRIPTION_STATUS_CANCELLED indicates subscription cancelled by user.
+  SUBSCRIPTION_STATUS_CANCELLED   = 3;
+  // SUBSCRIPTION_STATUS_EXPIRED indicates subscription has expired.
+  SUBSCRIPTION_STATUS_EXPIRED     = 4;
+}
+
+// SubscriptionPlan models available billing tiers [p. 13].
+message SubscriptionPlan {
+  // id is the unique plan identifier.
+  string id = 1;
+  // name is the display name of the plan [p. 13].
+  string name = 2;
+  // cost_subunit is the real cost in cents (or equivalent subunits) [p. 13].
+  int64 cost_subunit = 3;
+  // currency is the target fiat currency.
+  string currency = 4;
+  // billing_interval determines billing frequency (e.g. "MONTH", "YEAR").
+  string billing_interval = 5;
+  // scarcity_fomo_label is the dynamic seat-count conversion label [p. 13, 29].
+  string scarcity_fomo_label = 6;
+}
+
+// Subscription represents an active premium subscription.
+message Subscription {
+  // id is the unique subscription ULID.
+  string id = 1 [(buf.validate.field).string.len = 26];
+  // identity_id is the unique identity ULID.
+  string identity_id = 2 [(buf.validate.field).string.len = 26];
+  // plan_id is the unique plan identifier.
+  string plan_id = 3;
+  // status is the current subscription status.
+  SubscriptionStatus status = 4;
+  // current_period_start tracks the start of the billing period.
+  google.protobuf.Timestamp current_period_start = 5;
+  // current_period_end tracks the end of the billing period.
+  google.protobuf.Timestamp current_period_end = 6;
+  // is_immunity_shield_enabled flags if the user's shield is enabled [p. 14, 38].
+  bool is_immunity_shield_enabled = 7;
+}
+
+// ListSubscriptionPlansRequest is the query payload.
+message ListSubscriptionPlansRequest {
+  // identity_id is the unique identity ULID.
+  string identity_id = 1 [(buf.validate.field).string.len = 26];
+  // country_code is the ISO country code of the user.
+  string country_code = 2 [(buf.validate.field).string.len = 2];
+}
+
+// ListSubscriptionPlansResponse returns localized plans.
+message ListSubscriptionPlansResponse {
+  // plans is the list of localized plans.
+  repeated SubscriptionPlan plans = 1;
+}
+
+// SubscribeRequest is the upgrade payload.
+message SubscribeRequest {
+  // identity_id is the unique identity ULID.
+  string identity_id = 1 [(buf.validate.field).string.len = 26];
+  // plan_id is the unique plan identifier.
+  string plan_id = 2 [(buf.validate.field).string.min_len = 1];
+  // billing_phone is the billing mobile number.
+  string billing_phone = 3 [(buf.validate.field).string.pattern = "^\\+[1-9]\\d{6,14}$"];
+  // idempotency_key prevents duplicate billing on retry.
+  string idempotency_key = 4 [(buf.validate.field).string.uuid = true];
+}
+
+// SubscribeResponse returns upgrade details.
+message SubscribeResponse {
+  // subscription is the upgraded subscription record.
+  Subscription subscription = 1;
+  // operator_ussd_trigger is the dynamic carrier USSD trigger.
+  string operator_ussd_trigger = 2;
+}
+
+// ToggleImmunityShieldRequest modifies the shield status.
+message ToggleImmunityShieldRequest {
+  // identity_id is the unique identity ULID.
+  string identity_id = 1 [(buf.validate.field).string.len = 26];
+  // enable_shield flags the target state [p. 14, 38].
+  bool enable_shield = 2;
+}
+
+// ToggleImmunityShieldResponse returns updated shield status.
+message ToggleImmunityShieldResponse {
+  // shield_active flags if the shield is active [p. 14, 38].
+  bool shield_active = 1;
+  // updated_at is when the shield was modified.
+  google.protobuf.Timestamp updated_at = 2;
+}
+
+// GetSubscriptionDetailsRequest is the details query payload.
+message GetSubscriptionDetailsRequest {
+  // identity_id is the unique identity ULID.
+  string identity_id = 1 [(buf.validate.field).string.len = 26];
+}
+
+// GetSubscriptionDetailsResponse returns subscription details.
+message GetSubscriptionDetailsResponse {
+  // subscription is the retrieved subscription.
+  Subscription subscription = 1;
+}

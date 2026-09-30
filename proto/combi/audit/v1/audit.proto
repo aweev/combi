@@ -1,0 +1,94 @@
+syntax = "proto3";
+
+package combi.audit.v1;
+
+option go_package = "github.com/combi/gen/go/combi/audit/v1;auditv1";
+
+import "google/protobuf/timestamp.proto";
+import "buf/validate/validate.proto";
+
+// AuditLogService provides a cryptographically chained, immutable security log of all system actions.
+service AuditLogService {
+  // RecordAuditEvent records an immutable action taken by an identity or administrative user [p. 8].
+  rpc RecordAuditEvent (RecordAuditEventRequest) returns (RecordAuditEventResponse);
+  // StreamAuditTrail establishes a server-streaming gRPC query of active administrative audit trails [p. 8].
+  rpc StreamAuditTrail (StreamAuditTrailRequest) returns (stream StreamAuditTrailResponse);
+  // GetAuditTrail queries historical compliance logs with cryptographic proof verification.
+  rpc GetAuditTrail (GetAuditTrailRequest) returns (GetAuditTrailResponse);
+}
+
+// AuditEvent represents a single administrative or security-sensitive action [p. 8].
+message AuditEvent {
+  // id is the unique ULID identifying this audit log entry.
+  string id = 1 [(buf.validate.field).string.len = 26];
+  // actor_identity_id is the identity ULID of the executor.
+  string actor_identity_id = 2 [(buf.validate.field).string.len = 26];
+  // action is the event class name (e.g. "MANUAL_SHADOWBAN", "ESCROW_RELEASE") [p. 42].
+  string action = 3 [(buf.validate.field).string.min_len = 3];
+  // resource_uri is the target resource path (e.g. "identity:123").
+  string resource_uri = 4;
+  // context_metadata is the optional payload of variables.
+  string context_metadata = 5;
+  // client_ip is the client IP.
+  string client_ip = 6 [(buf.validate.field).string.ip = true];
+  // trace_id is the OpenTelemetry trace propagation context.
+  string trace_id = 7;
+  // occurred_at is when the action occurred.
+  google.protobuf.Timestamp occurred_at = 8;
+  // previous_hash is the cryptographic verification link.
+  string previous_hash = 9;
+}
+
+// RecordAuditEventRequest is the logging payload.
+message RecordAuditEventRequest {
+  // actor_identity_id is the identity ULID of the executor.
+  string actor_identity_id = 1 [(buf.validate.field).string.len = 26];
+  // action is the event class name.
+  string action = 2 [(buf.validate.field).string.min_len = 3];
+  // resource_uri is the target resource path.
+  string resource_uri = 3;
+  // context_metadata is the optional payload of variables.
+  string context_metadata = 4;
+  // client_ip is the client IP.
+  string client_ip = 5 [(buf.validate.field).string.ip = true];
+  // trace_id is the OpenTelemetry trace context.
+  string trace_id = 6;
+}
+
+// RecordAuditEventResponse returns logging status.
+message RecordAuditEventResponse {
+  // recorded flags if the log was saved.
+  bool recorded = 1;
+  // event_id is the unique ULID identifying this audit entry.
+  string event_id = 2 [(buf.validate.field).string.len = 26];
+}
+
+// StreamAuditTrailRequest initiates real-time audit event streaming.
+message StreamAuditTrailRequest {
+  // action_filter is the optional event class filter [p. 8].
+  string action_filter = 1;
+}
+
+// StreamAuditTrailResponse wraps real-time audit events.
+message StreamAuditTrailResponse {
+  // event is the audit log entry.
+  AuditEvent event = 1;
+}
+
+// GetAuditTrailRequest is the history query payload.
+message GetAuditTrailRequest {
+  // actor_identity_id is the identity ULID of the executor.
+  string actor_identity_id = 1;
+  // limit is the maximum logs to return.
+  int32 limit = 2 [(buf.validate.field).int32.lte = 100];
+  // offset is the query offset.
+  int32 offset = 3;
+}
+
+// GetAuditTrailResponse returns audit history logs.
+message GetAuditTrailResponse {
+  // events is the list of audit log entries.
+  repeated AuditEvent events = 1;
+  // integrity_check_passed is true if hashes are verified.
+  bool integrity_check_passed = 2;
+}

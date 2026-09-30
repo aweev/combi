@@ -1,0 +1,86 @@
+{
+    "Metadata": {
+    "title": "كاست (CAST) | مشغل بواسطة Combi",
+    "description": "كل شيء يُكشف. لا شيء آمن."
+  },
+  "Common": {
+    "viewAll": "عرض الكل",
+    "shareToStatus": "للحالة",
+    "castAgain": "صوّت مجدداً"
+  },
+  "Navigation": {
+    "home": "الرئيسية",
+    "squads": "المجموعات",
+    "court": "المحكمة",
+    "arena": "الساحة",
+    "vault": "الخزنة"
+  },
+  "Execution": {
+    "decrypting": "جاري فك تشفير الحقيقة...",
+    "verdictSealed": "تم ختم الحكم",
+    "yourSquadRuled": "حكمت مجموعتك.",
+    "truthComesOut": "الحقيقة تظهر دائماً.",
+    "targetAcquired": "تم تحديد الهدف",
+    "finalTally": "النتيجة النهائية",
+    "mostLikelyTo": "الأكثر عرضة لـ",
+    "shareYourVerdict": "شارك حكمك",
+    "swipeStyles": "اسحب للأنماط",
+    "iGotCasted": "لقد تم التصويت علي",
+    "asThePerson": "بصفتي الشخص",
+    "mySquadVotedMe": "صوتت لي مجموعتي",
+    "theyAreNotWrong": "إنهم ليسوا مخطئين.",
+    "squadConsensus": "إجماع المجموعة",
+    "theJury": "هيئة المحلفين",
+    "identityProtected": "الهوية محمية",
+    "agreed": "موافق",
+    "denied": "مرفوض",
+    "burnBook": "كتاب الفضائح",
+    "entry": "الإدخال",
+    "shareTitle": "لقد تم التصويت علي",
+    "shareText": "قامت مجموعتي بكشفي على CAST. انضم لترى ما قالوه.",
+    "copiedSuccess": "تم نسخ الرابط!"
+  },
+  "Results": {
+    "pageTitle": "نتائج المجموعة",
+    "sessionComplete": "اكتملت الجلسة",
+    "theTruth": "الحقيقة",
+    "isOut": "ظهرت.",
+    "players": "{count} لاعبين",
+    "question": "سؤال {num}",
+    "votes": "أصوات",
+    "playAgain": "العب مجدداً",
+    "shareDeck": "شارك المجموعة",
+    "shareDeckText": "لقد لعبنا للتو {deckName}. الحقيقة ظهرت. العبها مع مجموعتك.",
+    "copiedSuccess": "تم نسخ رابط المجموعة!"
+  },
+  "Decks": {
+    "pageTitle": "المجموعات",
+    "chooseYour": "اختر",
+    "weapon": "سلاحك.",
+    "truthsCastToday": "{count} حقيقة تم كشفها اليوم",
+    "courtroomRules": "المحكمة",
+    "courtroomTooltipDesc": "تصويتاتك مجهولة. ستعرف مجموعتك النتيجة، لكن لن يعرفوا أبداً من صوّت.",
+    "catAll": "الكل",
+    "catChaos": "فوضى",
+    "catLoveLies": "حب وأكاذيب",
+    "catCampus": "الحرم الجامعي",
+    "catMoney": "مال",
+    "catCreator": "صانع محتوى",
+    "catSponsored": "ممول",
+    "innerCourtOnly": "الساحة الداخلية فقط",
+    "presentedBy": "مقدم من {brand}",
+    "castTimes": "تم اللعب {count} مرة.",
+    "playThisCast": "العب هذا الكاست",
+    "yourBurnBook": "كتاب الأسرار الخاص بك:",
+    "verdictsPending": "{count} أحكام معلقة."
+  },
+  "Courtroom": {
+    "pageTitle": "المحكمة",
+    "inSession": "المحكمة منعقدة.",
+    "anonymousWarning": "تصويتاتك مجهولة. ستعرف مجموعتك النتيجة.",
+    "tapToCast": "انقر على وجه لإصدار حكمك.",
+    "skip": "تخطي",
+    "finalQuestion": "السؤال الأخير. اجعله حاسماً.",
+    "progress": "{current} من {total} أسئلة"
+  }
+}

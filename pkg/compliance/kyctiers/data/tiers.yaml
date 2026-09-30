@@ -1,0 +1,65 @@
+# KYC tiers — per country, per level
+# Regulatory citations are REQUIRED for each entry.
+
+CM:
+  regulator: COBAC
+  tiers:
+    - level: 1
+      required_documents:
+        - national_id_front
+        - selfie
+      auto_approvable: true
+      expiry_years: 0
+      notes: "COBAC Règlement R-2019/01 relatif à la monnaie électronique, Art. 14"
+    - level: 2
+      required_documents:
+        - national_id_front
+        - national_id_back
+        - selfie
+        - proof_of_address
+      auto_approvable: true
+      expiry_years: 2
+      notes: "COBAC Règlement R-2019/01, Art. 15 — vérification renforcée"
+    - level: 3
+      required_documents:
+        - national_id_front
+        - national_id_back
+        - selfie
+        - proof_of_address
+        - passport
+      auto_approvable: false
+      expiry_years: 3
+      notes: "COBAC Règlement R-2019/01, Art. 16 — due diligence approfondie"
+
+NG:
+  regulator: CBN
+  tiers:
+    - level: 1
+      required_documents:
+        - bvn_number
+        - selfie
+      auto_approvable: true
+      expiry_years: 0
+      notes: "CBN KYC Regulations 2023, Tier 1 — BVN mandatory"
+    - level: 3
+      required_documents:
+        - bvn_number
+        - national_id_front
+        - national_id_back
+        - passport
+        - selfie
+        - proof_of_address
+      auto_approvable: false
+      expiry_years: 3
+      notes: "CBN KYC Regulations 2023, Tier 3"
+
+ET:
+  regulator: NBE
+  tiers:
+    - level: 1
+      required_documents:
+        - kebele_id
+        - selfie
+      auto_approvable: true
+      expiry_years: 0
+      notes: "NBE Directive No. FIS/01/2012"

@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAST — Visual Bible</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black:#080808; --white:#F5F3EE; --red:#E8390E; --red-dark:#B82C08;
+  --gold:#C9A84C; --s1:#111111; --s2:#1A1A1A; --s3:#222222;
+  --b:rgba(255,255,255,0.08); --bx:rgba(255,255,255,0.15);
+  --tp:#F0EDE8; --ts:#9A9590; --tt:#5A5550;
+  --display:'Syne',sans-serif; --mono:'DM Mono',monospace; --serif:'Instrument Serif',serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--black);color:var(--tp);font-family:var(--mono);font-size:13px;line-height:1.6;overflow-x:hidden}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(8,8,8,0.93);backdrop-filter:blur(12px);border-bottom:1px solid var(--b);display:flex;align-items:center;padding:0 32px;height:52px;gap:0}
+.nav-logo{font-family:var(--display);font-size:18px;font-weight:800;letter-spacing:-0.03em;color:var(--tp);margin-right:32px;flex-shrink:0}
+.nav-logo span{color:var(--red)}
+.nav-links{display:flex;gap:0;overflow-x:auto;scrollbar-width:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-links a{font-size:11px;color:var(--tt);text-decoration:none;padding:0 12px;height:52px;display:flex;align-items:center;letter-spacing:0.06em;text-transform:uppercase;transition:color 0.15s;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.nav-links a:hover{color:var(--tp)}
+.nav-links a.active{color:var(--tp);border-bottom-color:var(--red)}
+.nav-badge{margin-left:auto;font-size:10px;color:var(--red);border:1px solid var(--red);padding:2px 10px;border-radius:20px;letter-spacing:0.08em;text-transform:uppercase;flex-shrink:0}
+
+/* SCROLL BAR */
+.scroll-progress{position:fixed;top:52px;left:0;right:0;height:2px;background:rgba(255,255,255,0.04);z-index:99}
+.scroll-bar{height:100%;background:var(--red);width:0%;transition:width 0.1s linear}
+
+/* LAYOUT */
+section{padding:120px 0 80px}
+.wrap{max-width:1100px;margin:0 auto;padding:0 40px}
+.wrap-wide{max-width:1300px;margin:0 auto;padding:0 40px}
+
+/* TYPE HELPERS */
+.eyebrow{font-size:10px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:var(--red);display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.eyebrow::before{content:'';display:block;width:24px;height:1px;background:var(--red)}
+.section-title{font-family:var(--display);font-size:clamp(36px,5vw,64px);font-weight:800;line-height:0.95;letter-spacing:-0.03em;color:var(--tp);margin-bottom:16px}
+.section-title em{font-style:italic;font-family:var(--serif);color:var(--red);font-weight:400}
+.section-desc{font-size:13px;color:var(--ts);max-width:520px;line-height:1.7;margin-bottom:60px}
+.lede{font-family:var(--serif);font-size:22px;font-style:italic;color:var(--ts);line-height:1.4;max-width:580px;margin-bottom:48px}
+.tag{display:inline-block;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;border:1px solid var(--b);padding:3px 10px;border-radius:3px;color:var(--tt)}
+.divider{border:none;border-top:1px solid var(--b);margin:60px 0}
+
+/* GRIDS */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.mt8{margin-top:8px}.mt16{margin-top:16px}.mt24{margin-top:24px}.mt40{margin-top:40px}
+.mb8{margin-bottom:8px}.mb16{margin-bottom:16px}.mb24{margin-bottom:24px}.mb40{margin-bottom:40px}
+
+/* DARK/MID SECTIONS */
+.bg-s1{background:var(--s1)}
+.bg-s2{background:var(--s2)}
+
+/* HERO */
+#hero{min-height:100vh;display:flex;align-items:center;padding-top:52px;position:relative;overflow:hidden}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 70% 50%,rgba(232,57,14,0.08) 0%,transparent 70%);pointer-events:none}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px);background-size:60px 60px;pointer-events:none}
+.hero-content{position:relative;z-index:1}
+.hero-kicker{display:inline-flex;align-items:center;gap:8px;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--tt);border:1px solid var(--b);padding:6px 14px;border-radius:20px;margin-bottom:32px}
+.hero-dot{width:6px;height:6px;border-radius:50%;background:var(--red);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)}}
+.hero-title{font-family:var(--display);font-size:clamp(72px,12vw,160px);font-weight:800;line-height:0.88;letter-spacing:-0.04em;color:var(--tp);margin-bottom:8px}
+.hero-sub{font-family:var(--serif);font-size:clamp(24px,4vw,48px);font-weight:400;font-style:italic;color:var(--red);margin-bottom:32px;line-height:1}
+.hero-meta{display:flex;gap:32px;flex-wrap:wrap;margin-bottom:48px}
+.hero-meta-item{display:flex;flex-direction:column;gap:2px}
+.hero-meta-label{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--tt)}
+.hero-meta-value{font-size:13px;font-weight:500;color:var(--ts)}
+.hero-scroll{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--tt);letter-spacing:0.08em;text-transform:uppercase;animation:bounce 2s ease-in-out infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(4px)}}
+
+/* SWATCH */
+.swatch-row{display:flex;align-items:center;padding:14px 20px;gap:14px;border-bottom:1px solid var(--b);cursor:pointer;transition:background 0.1s}
+.swatch-row:last-child{border-bottom:none}
+.swatch-row:hover{background:rgba(255,255,255,0.025)}
+.swatch-dot{width:36px;height:36px;border-radius:4px;flex-shrink:0}
+.swatch-name{font-weight:500;font-size:12px;margin-bottom:2px}
+.swatch-hex{font-size:11px;color:var(--tt)}
+.swatch-use{font-size:11px;color:var(--tt);margin-top:2px}
+.copy-btn{font-size:10px;color:var(--tt);border:1px solid var(--b);padding:3px 8px;border-radius:4px;cursor:pointer;transition:all 0.1s;background:transparent;font-family:var(--mono)}
+.copy-btn:hover{color:var(--tp);border-color:var(--bx)}
+
+/* PALETTE STRIP */
+.pal-strip{display:flex;height:60px;border-radius:8px;overflow:hidden;margin-bottom:40px;border:1px solid var(--b)}
+.pal-stop{flex:1;position:relative;cursor:pointer;transition:flex 0.3s}
+.pal-stop:hover{flex:2.5}
+.pal-lbl{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);font-size:9px;white-space:nowrap;opacity:0;transition:opacity 0.2s;pointer-events:none}
+.pal-stop:hover .pal-lbl{opacity:1}
+
+/* BORDER CARD */
+.bcard{background:var(--s2);border:1px solid var(--b);border-radius:16px;overflow:hidden;margin-bottom:24px}
+.bcard-head{padding:16px 20px;border-bottom:1px solid var(--b);background:var(--s2);display:flex;align-items:center;justify-content:space-between}
+.bcard-name{font-size:12px;font-weight:500;color:var(--ts)}
+.bcard-meta{font-size:10px;color:var(--tt);display:flex;gap:14px}
+
+/* TYPE SPECIMEN */
+.t-scale{display:flex;flex-direction:column;gap:20px}
+.t-row{display:flex;align-items:baseline;gap:16px;padding-bottom:20px;border-bottom:1px solid var(--b)}
+.t-row:last-child{border-bottom:none;padding-bottom:0}
+.t-label{font-size:10px;color:var(--tt);width:80px;flex-shrink:0;letter-spacing:0.06em}
+.t-sample{flex:1}
+.t-spec{font-size:10px;color:var(--tt);text-align:right;flex-shrink:0}
+
+/* SPACING */
+.sp-row{display:flex;align-items:center;gap:16px;padding:10px 0;border-bottom:1px solid var(--b)}
+.sp-row:last-child{border-bottom:none}
+.sp-token{font-family:var(--mono);font-size:11px;color:var(--tt);width:100px}
+.sp-bar-w{flex:1}
+.sp-bar{height:8px;background:var(--red);border-radius:2px;opacity:0.7}
+.sp-val{font-size:11px;color:var(--ts);width:48px;text-align:right}
+
+/* MOTION CARDS */
+.motion-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:40px}
+.motion-card{border:1px solid var(--b);border-radius:16px;padding:24px;overflow:hidden}
+.motion-lbl{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--tt);margin-bottom:14px}
+.motion-name{font-family:var(--display);font-size:18px;font-weight:700;margin-bottom:4px}
+.motion-spec{font-size:11px;color:var(--tt);margin-bottom:18px}
+.motion-preview{height:44px;display:flex;align-items:center}
+.mdot{width:12px;height:12px;border-radius:50%;background:var(--red)}
+.m-snappy{transition:transform 0.15s cubic-bezier(0.2,0,0,1)}
+.m-smooth{transition:transform 0.35s cubic-bezier(0.4,0,0.2,1)}
+.m-dramatic{transition:transform 0.6s cubic-bezier(0.16,1,0.3,1)}
+.m-cinematic{transition:transform 0.9s cubic-bezier(0.76,0,0.24,1)}
+.m-paranoid{transition:transform 1.4s cubic-bezier(0.25,0.46,0.45,0.94)}
+.m-heartbeat{animation:pulse 2s ease-in-out infinite}
+.motion-card:hover .mdot{transform:translateX(140px)}
+
+/* COMPONENT GRID */
+.comp-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.comp-card{border:1px solid var(--b);border-radius:16px;overflow:hidden}
+.comp-head{padding:14px 18px;border-bottom:1px solid var(--b);background:var(--s2);display:flex;align-items:center;justify-content:space-between}
+.comp-name{font-size:12px;font-weight:500;color:var(--ts)}
+.comp-tag{font-size:10px;color:var(--tt);border:1px solid var(--b);padding:2px 8px;border-radius:3px}
+.comp-body{padding:24px;display:flex;align-items:center;justify-content:center;min-height:130px;background:var(--s1);gap:12px;flex-wrap:wrap}
+
+/* CAST COMPONENTS */
+.cast-btn{font-family:var(--display);font-size:13px;font-weight:700;letter-spacing:0.02em;padding:0 22px;height:44px;border-radius:4px;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:all 0.15s}
+.btn-primary{background:var(--red);color:#fff}
+.btn-primary:hover{background:var(--red-dark);transform:translateY(-1px)}
+.btn-secondary{background:transparent;color:var(--tp);border:1px solid var(--bx)}
+.btn-secondary:hover{border-color:var(--ts)}
+.btn-ghost{background:transparent;color:var(--ts);border:1px solid transparent}
+.btn-ghost:hover{color:var(--tp)}
+.btn-gold{background:var(--gold);color:#080808}
+.btn-gold:hover{opacity:0.9}
+
+.badge{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;padding:3px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:5px}
+.badge-court{background:rgba(201,168,76,0.12);color:var(--gold);border:1px solid rgba(201,168,76,0.28)}
+.badge-villain{background:rgba(232,57,14,0.1);color:var(--red);border:1px solid rgba(232,57,14,0.22)}
+.badge-live{background:rgba(34,197,94,0.08);color:#22C55E;border:1px solid rgba(34,197,94,0.2)}
+.badge-locked{background:rgba(255,255,255,0.04);color:var(--tt);border:1px solid var(--b)}
+.badge-blue{background:rgba(99,155,220,0.1);color:#639BDC;border:1px solid rgba(99,155,220,0.2)}
+
+.cast-input{background:var(--s3);border:1px solid var(--b);border-radius:4px;color:var(--tp);font-family:var(--mono);font-size:13px;padding:10px 14px;width:100%;outline:none;transition:border-color 0.15s}
+.cast-input:focus{border-color:var(--red)}
+.cast-input::placeholder{color:var(--tt)}
+
+.av{width:44px;height:44px;border-radius:50%;background:var(--s3);border:1.5px solid var(--bx);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:14px;font-weight:800;color:var(--ts)}
+
+/* BLUR CARD */
+.blur-card{background:var(--s2);border:1px solid var(--b);border-radius:16px;overflow:hidden;width:100%}
+.blur-head{padding:14px 18px;border-bottom:1px solid var(--b);display:flex;align-items:center;gap:10px}
+.blur-title{font-weight:500;font-size:13px}
+.blur-count{margin-left:auto;font-size:11px;color:var(--red)}
+.blur-row{padding:12px 18px;border-bottom:1px solid var(--b);display:flex;align-items:center;gap:12px}
+.blur-row:last-of-type{border-bottom:none}
+.blur-text{flex:1;font-size:12px;filter:blur(4px);color:var(--ts);transition:filter 0.5s cubic-bezier(0.16,1,0.3,1),opacity 0.4s}
+.blur-text.revealed{filter:none;color:var(--tp)}
+.blur-unlock-btn{font-size:10px;color:var(--red);border:1px solid rgba(232,57,14,0.28);padding:3px 10px;border-radius:3px;cursor:pointer;white-space:nowrap;background:transparent;font-family:var(--mono);transition:all 0.15s}
+.blur-unlock-btn:hover{background:rgba(232,57,14,0.07)}
+
+/* SCORE RING */
+.score-wrap{display:flex;flex-direction:column;align-items:center;gap:4px}
+.score-ring{width:68px;height:68px;border-radius:50%;border:2px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:18px;font-weight:800;position:relative}
+.score-lbl{font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--tt)}
+
+/* PHONE FRAME */
+.phone{width:272px;border-radius:34px;border:1.5px solid var(--bx);overflow:hidden;background:var(--s1);box-shadow:0 0 0 5px rgba(255,255,255,0.025);flex-shrink:0}
+.phone-notch{height:30px;background:var(--black);display:flex;align-items:flex-end;justify-content:center;padding-bottom:5px}
+.phone-pill{width:76px;height:5px;background:var(--s3);border-radius:3px}
+.screen-h{height:548px}
+.screens-scroll{display:flex;gap:20px;overflow-x:auto;padding-bottom:16px;scrollbar-width:thin;scrollbar-color:var(--b) transparent}
+.screens-scroll::-webkit-scrollbar{height:4px}
+.screens-scroll::-webkit-scrollbar-thumb{background:var(--b);border-radius:2px}
+.screen-item{display:flex;flex-direction:column;align-items:center;gap:10px;flex-shrink:0}
+.screen-lbl{text-align:center}
+.screen-lbl-name{font-size:11px;font-weight:500;color:var(--ts)}
+.screen-lbl-route{font-size:10px;color:var(--tt)}
+
+/* TONE CARDS */
+.tone-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:40px}
+.tone-card{border:1px solid var(--b);border-radius:16px;padding:22px;position:relative;overflow:hidden}
+.tone-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.tc-red::before{background:var(--red)}
+.tc-gold::before{background:var(--gold)}
+.tc-green::before{background:#22C55E}
+.tc-gray::before{background:var(--tt)}
+.tone-num{font-family:var(--display);font-size:44px;font-weight:800;opacity:0.07;position:absolute;top:10px;right:18px;line-height:1}
+.tone-name{font-family:var(--display);font-size:20px;font-weight:800;margin-bottom:4px}
+.tone-trigger{font-size:10px;color:var(--tt);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:14px}
+.tone-eg{font-size:13px;line-height:1.55;color:var(--ts);padding:12px;background:rgba(255,255,255,0.025);border-radius:4px;border-left:2px solid}
+.tc-red .tone-eg{border-color:var(--red)}
+.tc-gold .tone-eg{border-color:var(--gold)}
+.tc-green .tone-eg{border-color:#22C55E}
+.tc-gray .tone-eg{border-color:var(--tt)}
+
+/* LOGO GRID */
+.logo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px}
+.logo-cell{border:1px solid var(--b);border-radius:16px;overflow:hidden}
+.logo-cell-bg{height:110px;display:flex;align-items:center;justify-content:center}
+.logo-cell-lbl{padding:10px 14px;border-top:1px solid var(--b);background:var(--s2);font-size:11px;color:var(--tt)}
+.wm{font-family:var(--display);font-weight:800;letter-spacing:-0.04em}
+
+/* DO/DONT */
+.dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:28px}
+.dd-card{border-radius:16px;padding:18px;overflow:hidden}
+.dd-do{border:1px solid rgba(34,197,94,0.18);background:rgba(34,197,94,0.03)}
+.dd-dont{border:1px solid rgba(232,57,14,0.18);background:rgba(232,57,14,0.03)}
+.dd-lbl{font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.dd-do .dd-lbl{color:#22C55E}
+.dd-dont .dd-lbl{color:var(--red)}
+.dd-items{display:flex;flex-direction:column;gap:8px}
+.dd-item{font-size:12px;line-height:1.5;color:var(--ts);padding:9px 11px;background:rgba(255,255,255,0.025);border-radius:4px}
+
+/* SPEC TABLE */
+.spec-table{width:100%;border-collapse:collapse;margin-bottom:24px}
+.spec-table th{text-align:left;font-size:10px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--tt);padding:9px 14px;border-bottom:1px solid var(--b)}
+.spec-table td{padding:12px 14px;font-size:12px;color:var(--ts);border-bottom:1px solid var(--b);vertical-align:top}
+.spec-table tr:last-child td{border-bottom:none}
+.spec-table td:first-child{color:var(--tp);font-weight:500}
+.spec-table code{font-family:var(--mono);font-size:11px;color:var(--red);background:rgba(232,57,14,0.08);padding:1px 6px;border-radius:3px}
+
+/* TAB SYSTEM */
+.tab-list{display:flex;border-bottom:1px solid var(--b);margin-bottom:22px}
+.tab-btn{font-family:var(--mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--tt);background:none;border:none;padding:9px 14px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all 0.15s}
+.tab-btn.active{color:var(--tp);border-bottom-color:var(--red)}
+.tab-btn:hover{color:var(--ts)}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* TAGLINES */
+.tl-block{border:1px solid var(--b);border-radius:16px;padding:28px 36px;margin-bottom:14px;position:relative;overflow:hidden}
+.tl-featured{background:var(--red);border-color:transparent}
+.tl-text{font-family:var(--serif);font-size:26px;font-style:italic;line-height:1.2;color:var(--tp)}
+.tl-featured .tl-text{color:#fff}
+.tl-ctx{font-size:11px;color:var(--tt);margin-top:8px}
+.tl-featured .tl-ctx{color:rgba(255,255,255,0.55)}
+
+/* SHARECARD MOCKUP */
+.sharecard{aspect-ratio:9/16;max-width:260px;background:var(--black);border-radius:14px;overflow:hidden;border:1px solid var(--b);position:relative;display:flex;flex-direction:column;padding:22px}
+
+/* FOOTER */
+footer{border-top:1px solid var(--b);padding:36px 40px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px}
+.f-brand{font-family:var(--display);font-size:16px;font-weight:800}
+.f-brand span{color:var(--red)}
+.f-meta{font-size:11px;color:var(--tt)}
+
+/* TOAST */
+#toast{position:fixed;bottom:22px;right:22px;background:var(--s3);border:1px solid var(--bx);border-radius:4px;padding:9px 14px;font-size:12px;color:var(--tp);opacity:0;transition:opacity 0.2s;pointer-events:none;z-index:200}
+
+@media(max-width:768px){
+  .g2,.g3,.g4,.comp-grid,.tone-grid,.dd-grid,.logo-grid,.motion-grid{grid-template-columns:1fr}
+  .wrap,.wrap-wide{padding:0 20px}
+  nav{padding:0 16px}
+}
+</style>
+</head>
+<body>
+
+<div class="scroll-progress"><div class="scroll-bar" id="progressBar"></div></div>
+
+<nav>
+  <div class="nav-logo">C<span>A</span>ST</div>
+  <div class="nav-links">
+    <a href="#brand" class="active">Brand</a>
+    <a href="#color">Color</a>
+    <a href="#typography">Type</a>
+    <a href="#spacing">Space</a>
+    <a href="#motion">Motion</a>
+    <a href="#components">Components</a>
+    <a href="#screens">Screens</a>
+    <a href="#voice">Voice</a>
+    <a href="#logo">Logo</a>
+    <a href="#sharecard">Sharecard</a>
+  </div>
+  <div class="nav-badge">Visual Bible v1.0</div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="wrap">
+    <div class="hero-content">
+      <div class="hero-kicker"><div class="hero-dot"></div>Cast · Visual Bible · Powered by Gravity</div>
+      <div class="hero-title">CAST</div>
+      <div class="hero-sub">Visual Design System</div>
+      <div class="hero-meta">
+        <div class="hero-meta-item"><div class="hero-meta-label">Version</div><div class="hero-meta-value">1.0 — V1 Launch</div></div>
+        <div class="hero-meta-item"><div class="hero-meta-label">Audience</div><div class="hero-meta-value">West &amp; Central Africa</div></div>
+        <div class="hero-meta-item"><div class="hero-meta-label">Platform</div><div class="hero-meta-value">PWA · iOS · Android</div></div>
+        <div class="hero-meta-item"><div class="hero-meta-label">Classification</div><div class="hero-meta-value">Confidential</div></div>
+      </div>
+      <div class="hero-scroll">&#8595; &nbsp; Scroll to explore</div>
+    </div>
+  </div>
+</section>
+
+<!-- BRAND FOUNDATION -->
+<section id="brand" class="bg-s1">
+  <div class="wrap">
+    <div class="eyebrow">01 — Brand Foundation</div>
+    <h2 class="section-title">What Cast <em>is</em></h2>
+    <p class="lede">"The social operating system where truth is currency and secrets are the product."</p>
+    <div class="g2 mb40">
+      <div>
+        <div class="tag mb16">Design Philosophy</div>
+        <p class="section-desc">Cast's identity lives at the intersection of the sleek and the savage. Every surface is minimal, dark, and precise — but underneath runs a current of danger. The aesthetic declares: <em>this is real. this matters.</em></p>
+        <p style="font-size:13px;color:var(--tt);line-height:1.7">The darkness is not decoration. It is the environment where secrets live. The red is not an accent — it is alarm, exposure, revelation.</p>
+      </div>
+      <div>
+        <div class="tag mb16">Three Design Principles</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="background:var(--s2);border:1px solid var(--b);border-radius:8px;padding:16px">
+            <div style="font-family:var(--display);font-size:13px;font-weight:700;margin-bottom:4px;color:var(--tp)">01. Cinematic Precision</div>
+            <div style="font-size:12px;color:var(--ts);line-height:1.5">Every interaction feels like a scene. Votes are verdicts. Reveals are executions. The UI never feels casual — it feels consequential.</div>
+          </div>
+          <div style="background:var(--s2);border:1px solid var(--b);border-radius:8px;padding:16px">
+            <div style="font-family:var(--display);font-size:13px;font-weight:700;margin-bottom:4px;color:var(--tp)">02. Dangerous Clarity</div>
+            <div style="font-size:12px;color:var(--ts);line-height:1.5">The blur is the product. What is hidden must be felt before it is revealed. Clarity is earned, not given. The UI enforces this at every paywall.</div>
+          </div>
+          <div style="background:var(--s2);border:1px solid var(--b);border-radius:8px;padding:16px">
+            <div style="font-family:var(--display);font-size:13px;font-weight:700;margin-bottom:4px;color:var(--tp)">03. African Vernacular</div>
+            <div style="font-size:12px;color:var(--ts);line-height:1.5">The energy draws from West and Central African internet culture — bold, sharp, in on the joke. The UI speaks Lagos and Douala before it speaks anywhere else.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="tag mb24">Core Taglines</div>
+    <div class="tl-block tl-featured"><div class="tl-text">"Everything Casts. Nothing is safe."</div><div class="tl-ctx">Primary tagline — hero page, app store, out-of-home</div></div>
+    <div class="g3">
+      <div class="tl-block"><div class="tl-text" style="font-size:17px">"The truth has always been there. Now it has a price."</div><div class="tl-ctx">Monetisation framing</div></div>
+      <div class="tl-block"><div class="tl-text" style="font-size:17px">"Your squad knows. Do you?"</div><div class="tl-ctx">Burn Book unlock prompt</div></div>
+      <div class="tl-block"><div class="tl-text" style="font-size:17px">"Cast me. If you dare."</div><div class="tl-ctx">Social sharecard hook</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- COLOR -->
+<section id="color">
+  <div class="wrap">
+    <div class="eyebrow">02 — Color System</div>
+    <h2 class="section-title">The <em>palette</em></h2>
+    <p class="section-desc">Four primary roles. One dominant dark ground. One signal red. One status gold. One neutral scale that communicates everything from trust to danger.</p>
+
+    <div class="tag mb16">Cast Red — Full Ramp</div>
+    <div class="pal-strip mb40">
+      <div class="pal-stop" style="background:#FDEEE9"><div class="pal-lbl" style="color:#8B2A12">50</div></div>
+      <div class="pal-stop" style="background:#F9CCBC"><div class="pal-lbl" style="color:#8B2A12">100</div></div>
+      <div class="pal-stop" style="background:#F3A48C"><div class="pal-lbl" style="color:#8B2A12">200</div></div>
+      <div class="pal-stop" style="background:#EB7350"><div class="pal-lbl" style="color:#fff">300</div></div>
+      <div class="pal-stop" style="background:#E8390E"><div class="pal-lbl" style="color:#fff">400 ★</div></div>
+      <div class="pal-stop" style="background:#C43209"><div class="pal-lbl" style="color:#fff">500</div></div>
+      <div class="pal-stop" style="background:#9E2507"><div class="pal-lbl" style="color:#fff">600</div></div>
+      <div class="pal-stop" style="background:#731A05"><div class="pal-lbl" style="color:#fff">700</div></div>
+      <div class="pal-stop" style="background:#4A1003"><div class="pal-lbl" style="color:#fff">800</div></div>
+    </div>
+
+    <div class="g2 mb40">
+      <div class="bcard">
+        <div class="bcard-head"><div class="bcard-name">Primary Palette</div></div>
+        <div class="swatch-row" onclick="copyColor('#E8390E')"><div class="swatch-dot" style="background:#E8390E;box-shadow:0 0 0 1px rgba(232,57,14,0.4)"></div><div style="flex:1"><div class="swatch-name" style="color:#E8390E">Cast Red</div><div class="swatch-hex">#E8390E</div><div class="swatch-use">CTAs · Alerts · Revelations · The paywall</div></div><button class="copy-btn">Copy</button></div>
+        <div class="swatch-row" onclick="copyColor('#080808')"><div class="swatch-dot" style="background:#080808;border:1px solid rgba(255,255,255,0.1)"></div><div style="flex:1"><div class="swatch-name">Void Black</div><div class="swatch-hex">#080808</div><div class="swatch-use">Primary background · The darkness that holds secrets</div></div><button class="copy-btn">Copy</button></div>
+        <div class="swatch-row" onclick="copyColor('#F0EDE8')"><div class="swatch-dot" style="background:#F0EDE8;border:1px solid rgba(0,0,0,0.1)"></div><div style="flex:1"><div class="swatch-name">Bone White</div><div class="swatch-hex">#F0EDE8</div><div class="swatch-use">Primary text on dark · Warm, not clinical</div></div><button class="copy-btn">Copy</button></div>
+        <div class="swatch-row" onclick="copyColor('#C9A84C')"><div class="swatch-dot" style="background:#C9A84C"></div><div style="flex:1"><div class="swatch-name" style="color:#C9A84C">Court Gold</div><div class="swatch-hex">#C9A84C</div><div class="swatch-use">Inner Court status · Premium badges · Elite tier</div></div><button class="copy-btn">Copy</button></div>
+      </div>
+      <div class="bcard">
+        <div class="bcard-head"><div class="bcard-name">Surface Hierarchy</div></div>
+        <div class="swatch-row" onclick="copyColor('#080808')"><div class="swatch-dot" style="background:#080808;border:1px solid rgba(255,255,255,0.1)"></div><div style="flex:1"><div class="swatch-name">Surface 0 — Ground</div><div class="swatch-hex">#080808</div><div class="swatch-use">Page background. Never filled directly.</div></div><button class="copy-btn">Copy</button></div>
+        <div class="swatch-row" onclick="copyColor('#111111')"><div class="swatch-dot" style="background:#111111;border:1px solid rgba(255,255,255,0.1)"></div><div style="flex:1"><div class="swatch-name">Surface 1 — Base</div><div class="swatch-hex">#111111</div><div class="swatch-use">Primary content containers. Main app shell.</div></div><button class="copy-btn">Copy</button></div>
+        <div class="swatch-row" onclick="copyColor('#1A1A1A')"><div class="swatch-dot" style="background:#1A1A1A;border:1px solid rgba(255,255,255,0.1)"></div><div style="flex:1"><div class="swatch-name">Surface 2 — Raised</div><div class="swatch-hex">#1A1A1A</div><div class="swatch-use">Cards, modals, nav bars.</div></div><button class="copy-btn">Copy</button></div>
+        <div class="swatch-row" onclick="copyColor('#222222')"><div class="swatch-dot" style="background:#222222;border:1px solid rgba(255,255,255,0.1)"></div><div style="flex:1"><div class="swatch-name">Surface 3 — Overlay</div><div class="swatch-hex">#222222</div><div class="swatch-use">Input fields, hover states.</div></div><button class="copy-btn">Copy</button></div>
+        <div class="swatch-row" onclick="copyColor('#2E2E2E')"><div class="swatch-dot" style="background:#2E2E2E;border:1px solid rgba(255,255,255,0.1)"></div><div style="flex:1"><div class="swatch-name">Surface 4 — High</div><div class="swatch-hex">#2E2E2E</div><div class="swatch-use">Active states, selected rows.</div></div><button class="copy-btn">Copy</button></div>
+      </div>
+    </div>
+
+    <div class="tag mb16">Semantic Colors</div>
+    <div class="g4 mb40">
+      <div style="border:1px solid rgba(232,57,14,0.2);border-radius:16px;overflow:hidden"><div style="height:52px;background:rgba(232,57,14,0.08);display:flex;align-items:center;justify-content:center"><div style="width:26px;height:26px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px">!</div></div><div style="padding:11px 14px"><div style="font-weight:500;font-size:12px;margin-bottom:2px">Danger</div><div style="font-size:11px;color:var(--tt)">#E8390E · Errors, bans</div></div></div>
+      <div style="border:1px solid rgba(201,168,76,0.2);border-radius:16px;overflow:hidden"><div style="height:52px;background:rgba(201,168,76,0.07);display:flex;align-items:center;justify-content:center"><div style="width:26px;height:26px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#080808;font-size:13px">&#9733;</div></div><div style="padding:11px 14px"><div style="font-weight:500;font-size:12px;margin-bottom:2px">Premium</div><div style="font-size:11px;color:var(--tt)">#C9A84C · Inner Court</div></div></div>
+      <div style="border:1px solid rgba(34,197,94,0.2);border-radius:16px;overflow:hidden"><div style="height:52px;background:rgba(34,197,94,0.05);display:flex;align-items:center;justify-content:center"><div style="width:26px;height:26px;background:#22C55E;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px">&#10003;</div></div><div style="padding:11px 14px"><div style="font-weight:500;font-size:12px;margin-bottom:2px">Success</div><div style="font-size:11px;color:var(--tt)">#22C55E · Payments</div></div></div>
+      <div style="border:1px solid rgba(99,155,220,0.2);border-radius:16px;overflow:hidden"><div style="height:52px;background:rgba(99,155,220,0.05);display:flex;align-items:center;justify-content:center"><div style="width:26px;height:26px;background:#639BDC;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px">i</div></div><div style="padding:11px 14px"><div style="font-weight:500;font-size:12px;margin-bottom:2px">Info</div><div style="font-size:11px;color:var(--tt)">#639BDC · Tips</div></div></div>
+    </div>
+
+    <div class="tag mb16">Text Hierarchy</div>
+    <table class="spec-table">
+      <thead><tr><th>Token</th><th>Value</th><th>Usage</th></tr></thead>
+      <tbody>
+        <tr><td>text-primary</td><td><code>#F0EDE8</code></td><td>Headings, primary labels, anything the user must read</td></tr>
+        <tr><td>text-secondary</td><td><code>#9A9590</code></td><td>Body copy, descriptions, supporting metadata</td></tr>
+        <tr><td>text-tertiary</td><td><code>#5A5550</code></td><td>Timestamps, counts, captions, ghost elements</td></tr>
+        <tr><td>text-danger</td><td><code>#E8390E</code></td><td>Errors, bans, unlock prompts, Cast Red moments</td></tr>
+        <tr><td>text-premium</td><td><code>#C9A84C</code></td><td>Inner Court labels, premium tier markers</td></tr>
+        <tr><td>text-success</td><td><code>#22C55E</code></td><td>Payment confirmed, unlock success, tournament win</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- TYPOGRAPHY -->
+<section id="typography" class="bg-s1">
+  <div class="wrap">
+    <div class="eyebrow">03 — Typography</div>
+    <h2 class="section-title">The <em>voice</em> in type</h2>
+    <p class="section-desc">Three typefaces. Each serves a specific emotional register. Together they create an identity that is simultaneously cinematic, technical, and human.</p>
+
+    <!-- Syne -->
+    <div class="bcard mb24">
+      <div class="bcard-head"><div class="bcard-name">Syne — Display &amp; UI Headings</div><div class="bcard-meta"><span>Google Fonts</span><span>Weight: 700, 800</span><span>Headlines · CTAs · Nav · Courtroom verdicts</span></div></div>
+      <div style="padding:28px 36px">
+        <div style="font-family:var(--display);font-size:52px;font-weight:800;line-height:0.9;letter-spacing:-0.04em;color:var(--tp);margin-bottom:24px">The Verdict<br>Is <span style="color:var(--red)">Cast.</span></div>
+        <div class="t-scale">
+          <div class="t-row"><div class="t-label">Display XL</div><div class="t-sample"><span style="font-family:var(--display);font-size:68px;font-weight:800;line-height:1;letter-spacing:-0.04em;color:var(--tp)">CAST</span></div><div class="t-spec">68px / 800 / -0.04em</div></div>
+          <div class="t-row"><div class="t-label">Display LG</div><div class="t-sample"><span style="font-family:var(--display);font-size:44px;font-weight:800;letter-spacing:-0.03em;color:var(--tp)">The Courtroom</span></div><div class="t-spec">44px / 800 / -0.03em</div></div>
+          <div class="t-row"><div class="t-label">Heading 1</div><div class="t-sample"><span style="font-family:var(--display);font-size:30px;font-weight:800;letter-spacing:-0.02em;color:var(--tp)">Your Burn Book</span></div><div class="t-spec">30px / 800 / -0.02em</div></div>
+          <div class="t-row"><div class="t-label">Heading 2</div><div class="t-sample"><span style="font-family:var(--display);font-size:22px;font-weight:700;color:var(--tp)">Join the Inner Court</span></div><div class="t-spec">22px / 700 / 0em</div></div>
+          <div class="t-row"><div class="t-label">Label / CTA</div><div class="t-sample"><span style="font-family:var(--display);font-size:13px;font-weight:700;letter-spacing:0.02em;color:var(--tp)">ENTER THE COURT</span></div><div class="t-spec">13px / 700 / 0.02em</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Instrument Serif -->
+    <div class="bcard mb24">
+      <div class="bcard-head"><div class="bcard-name">Instrument Serif — Editorial &amp; Emotional Moments</div><div class="bcard-meta"><span>Google Fonts</span><span>Italic only</span><span>Taglines · Persona reveals · Burn Book titles</span></div></div>
+      <div style="padding:28px 36px">
+        <div style="font-family:var(--serif);font-size:48px;font-style:italic;line-height:1.1;color:var(--tp);margin-bottom:24px">"The truth is blurred.<br>Unlock it."</div>
+        <div class="t-scale">
+          <div class="t-row"><div class="t-label">Quote LG</div><div class="t-sample"><span style="font-family:var(--serif);font-size:26px;font-style:italic;color:var(--ts)">"Everything Casts. Nothing is safe."</span></div><div class="t-spec">26px / Italic</div></div>
+          <div class="t-row"><div class="t-label">Archetype</div><div class="t-sample"><span style="font-family:var(--serif);font-size:20px;font-style:italic;color:var(--ts)">You are the Strategic Villain.</span></div><div class="t-spec">20px / Italic</div></div>
+          <div class="t-row"><div class="t-label">Sub-line</div><div class="t-sample"><span style="font-family:var(--serif);font-size:14px;font-style:italic;color:var(--tt)">Powered by Gravity Technology</span></div><div class="t-spec">14px / Italic</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DM Mono -->
+    <div class="bcard mb40">
+      <div class="bcard-head"><div class="bcard-name">DM Mono — Data, Labels &amp; UI Copy</div><div class="bcard-meta"><span>Google Fonts</span><span>Weight: 300, 400, 500</span><span>Prices · Scores · Timestamps · Form labels</span></div></div>
+      <div style="padding:28px 36px">
+        <div style="font-family:var(--mono);font-size:13px;color:var(--ts);line-height:1.8;margin-bottom:24px">500 CFA &nbsp;·&nbsp; @adaeze_unilag &nbsp;·&nbsp; Cast Score: 847 &nbsp;·&nbsp; 21 verdicts pending<br>Transaction #8X7K-9N2M &nbsp;·&nbsp; Inner Court Member &nbsp;·&nbsp; 3 of 7 agreed</div>
+        <div class="t-scale">
+          <div class="t-row"><div class="t-label">Price</div><div class="t-sample"><span style="font-family:var(--mono);font-size:20px;font-weight:500;color:var(--red)">500 CFA</span></div><div class="t-spec">20px / 500</div></div>
+          <div class="t-row"><div class="t-label">Data label</div><div class="t-sample"><span style="font-family:var(--mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--tt)">CAST SCORE · AURA vs TOXICITY</span></div><div class="t-spec">11px / 400 caps</div></div>
+          <div class="t-row"><div class="t-label">Handle</div><div class="t-sample"><span style="font-family:var(--mono);font-size:13px;color:var(--ts)">@adaeze_unilag</span></div><div class="t-spec">13px / 400</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dd-grid">
+      <div class="dd-card dd-do">
+        <div class="dd-lbl">&#10003; Do</div>
+        <div class="dd-items">
+          <div class="dd-item">Use Syne 800 for all headlines, verdict reveals, and CTAs</div>
+          <div class="dd-item">Use Instrument Serif Italic for emotional moments only — taglines, persona reveals</div>
+          <div class="dd-item">Use DM Mono for all prices, scores, timestamps, counts, and form labels</div>
+          <div class="dd-item">Keep Syne letter-spacing negative (−0.02em to −0.04em) at large sizes</div>
+          <div class="dd-item">Set display line-height to 0.88–1.0 — tight is cinematic</div>
+        </div>
+      </div>
+      <div class="dd-card dd-dont">
+        <div class="dd-lbl">&#10007; Don't</div>
+        <div class="dd-items">
+          <div class="dd-item">Never use Inter, Roboto, or system fonts anywhere in the product UI</div>
+          <div class="dd-item">Never use Syne at weights below 700</div>
+          <div class="dd-item">Never mix Syne and DM Mono in the same heading</div>
+          <div class="dd-item">Never use Instrument Serif for functional UI — emotion only</div>
+          <div class="dd-item">Never set body copy in Syne — it is a display typeface</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SPACING -->
+<section id="spacing">
+  <div class="wrap">
+    <div class="eyebrow">04 — Spacing &amp; Layout</div>
+    <h2 class="section-title">The <em>grid</em></h2>
+    <p class="section-desc">An 8-point base grid. All spacing values are multiples of 4 or 8. Consistency in space creates consistency in feel.</p>
+    <div class="g2">
+      <div>
+        <div class="tag mb16">Spacing Scale</div>
+        <div class="sp-row"><div class="sp-token">--space-2</div><div class="sp-bar-w"><div class="sp-bar" style="width:4px"></div></div><div class="sp-val">2px</div></div>
+        <div class="sp-row"><div class="sp-token">--space-4</div><div class="sp-bar-w"><div class="sp-bar" style="width:8px"></div></div><div class="sp-val">4px</div></div>
+        <div class="sp-row"><div class="sp-token">--space-8</div><div class="sp-bar-w"><div class="sp-bar" style="width:16px"></div></div><div class="sp-val">8px</div></div>
+        <div class="sp-row"><div class="sp-token">--space-12</div><div class="sp-bar-w"><div class="sp-bar" style="width:24px"></div></div><div class="sp-val">12px</div></div>
+        <div class="sp-row"><div class="sp-token">--space-16</div><div class="sp-bar-w"><div class="sp-bar" style="width:32px"></div></div><div class="sp-val">16px</div></div>
+        <div class="sp-row"><div class="sp-token">--space-24</div><div class="sp-bar-w"><div class="sp-bar" style="width:48px"></div></div><div class="sp-val">24px</div></div>
+        <div class="sp-row"><div class="sp-token">--space-32</div><div class="sp-bar-w"><div class="sp-bar" style="width:64px"></div></div><div class="sp-val">32px</div></div>
+        <div class="sp-row"><div class="sp-token">--space-48</div><div class="sp-bar-w"><div class="sp-bar" style="width:96px"></div></div><div class="sp-val">48px</div></div>
+        <div class="sp-row"><div class="sp-token">--space-64</div><div class="sp-bar-w"><div class="sp-bar" style="width:128px"></div></div><div class="sp-val">64px</div></div>
+        <div class="sp-row"><div class="sp-token">--space-120</div><div class="sp-bar-w"><div class="sp-bar" style="width:240px"></div></div><div class="sp-val">120px</div></div>
+      </div>
+      <div>
+        <div class="tag mb16">Border Radius Scale</div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:center;gap:14px"><div style="width:44px;height:44px;background:var(--red);border-radius:2px;flex-shrink:0"></div><div><div style="font-weight:500;font-size:12px">2px — Micro</div><div style="font-size:11px;color:var(--tt)">Tags, pips, progress bars</div></div></div>
+          <div style="display:flex;align-items:center;gap:14px"><div style="width:44px;height:44px;background:var(--red);border-radius:4px;flex-shrink:0"></div><div><div style="font-weight:500;font-size:12px">4px — Default</div><div style="font-size:11px;color:var(--tt)">Buttons, inputs, list rows</div></div></div>
+          <div style="display:flex;align-items:center;gap:14px"><div style="width:44px;height:44px;background:var(--red);border-radius:8px;flex-shrink:0"></div><div><div style="font-weight:500;font-size:12px">8px — Card</div><div style="font-size:11px;color:var(--tt)">Inner cards, verdict items</div></div></div>
+          <div style="display:flex;align-items:center;gap:14px"><div style="width:44px;height:44px;background:var(--red);border-radius:16px;flex-shrink:0"></div><div><div style="font-weight:500;font-size:12px">16px — Module</div><div style="font-size:11px;color:var(--tt)">Major cards, panels, drawers</div></div></div>
+          <div style="display:flex;align-items:center;gap:14px"><div style="width:44px;height:44px;background:var(--red);border-radius:999px;flex-shrink:0"></div><div><div style="font-weight:500;font-size:12px">Full — Pill</div><div style="font-size:11px;color:var(--tt)">Badges, eyebrow labels, avatar rings</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MOTION -->
+<section id="motion" class="bg-s1">
+  <div class="wrap">
+    <div class="eyebrow">05 — Motion &amp; Animation</div>
+    <h2 class="section-title">How Cast <em>moves</em></h2>
+    <p class="section-desc">Every animation carries meaning. Fast animations communicate confidence. Slow ones build tension. The blur-to-reveal is the most important animation in the product.</p>
+    <div class="tag mb16">Hover any card to preview the easing</div>
+    <div class="motion-grid">
+      <div class="motion-card"><div class="motion-lbl">Interaction</div><div class="motion-name">Snappy</div><div class="motion-spec">150ms · cubic-bezier(0.2,0,0,1)</div><div class="motion-preview"><div class="mdot m-snappy"></div></div><div style="font-size:11px;color:var(--tt);margin-top:10px;line-height:1.5">Tap confirmations, toggles, badge updates. Anything that must feel immediate.</div></div>
+      <div class="motion-card"><div class="motion-lbl">Navigation</div><div class="motion-name">Smooth</div><div class="motion-spec">350ms · cubic-bezier(0.4,0,0.2,1)</div><div class="motion-preview"><div class="mdot m-smooth"></div></div><div style="font-size:11px;color:var(--tt);margin-top:10px;line-height:1.5">Tab transitions, drawer open/close, card expand. Standard movement.</div></div>
+      <div class="motion-card"><div class="motion-lbl">Entrance</div><div class="motion-name">Dramatic</div><div class="motion-spec">600ms · cubic-bezier(0.16,1,0.3,1)</div><div class="motion-preview"><div class="mdot m-dramatic"></div></div><div style="font-size:11px;color:var(--tt);margin-top:10px;line-height:1.5">Page-level entrances, modal open, archetype reveal.</div></div>
+      <div class="motion-card"><div class="motion-lbl">Revelation</div><div class="motion-name">Cinematic</div><div class="motion-spec">900ms · cubic-bezier(0.76,0,0.24,1)</div><div class="motion-preview"><div class="mdot m-cinematic"></div></div><div style="font-size:11px;color:var(--tt);margin-top:10px;line-height:1.5">The Execution screen. Verdict Sealed. Deliberate, weighted, final.</div></div>
+      <div class="motion-card"><div class="motion-lbl">Suspense</div><div class="motion-name">Paranoid</div><div class="motion-spec">1400ms · cubic-bezier(0.25,0.46,0.45,0.94)</div><div class="motion-preview"><div class="mdot m-paranoid"></div></div><div style="font-size:11px;color:var(--tt);margin-top:10px;line-height:1.5">"Decrypting truth..." holding screen. The wait is the product.</div></div>
+      <div class="motion-card"><div class="motion-lbl">Pulse</div><div class="motion-name">Heartbeat</div><div class="motion-spec">2000ms · ease-in-out · infinite</div><div class="motion-preview"><div class="mdot m-heartbeat"></div></div><div style="font-size:11px;color:var(--tt);margin-top:10px;line-height:1.5">Pending verdict dot. Notification badge. Live tournament indicator.</div></div>
+    </div>
+
+    <div class="tag mb16">The Signature Animation — Blur to Reveal</div>
+    <div style="background:var(--s2);border:1px solid var(--b);border-radius:16px;padding:24px">
+      <p style="font-size:12px;color:var(--tt);margin-bottom:16px;line-height:1.7">The Burn Book reveal is the product's most important animation. It must feel like the arrival of forbidden knowledge. The blur does not fade linearly — it dissolves with a staggered sequence per item.</p>
+      <table class="spec-table">
+        <thead><tr><th>Phase</th><th>Duration</th><th>Property</th><th>Easing</th></tr></thead>
+        <tbody>
+          <tr><td>MoMo pending</td><td>&#8734; loop</td><td>Rotating gradient overlay on blur</td><td>linear infinite</td></tr>
+          <tr><td>Webhook received</td><td>0ms</td><td>Trigger reveal sequence</td><td>—</td></tr>
+          <tr><td>Blur dissolve</td><td>600ms</td><td>filter: blur(6px) &#8594; blur(0)</td><td>cubic-bezier(0.16,1,0.3,1)</td></tr>
+          <tr><td>Opacity arrive</td><td>400ms / 80ms delay</td><td>opacity: 0.4 &#8594; 1</td><td>ease-out</td></tr>
+          <tr><td>Scale settle</td><td>300ms / 40ms delay</td><td>scale(0.98) &#8594; scale(1)</td><td>cubic-bezier(0.2,0,0,1)</td></tr>
+          <tr><td>Reaction appear</td><td>200ms / 200ms delay</td><td>translateY(8px) &#8594; 0</td><td>cubic-bezier(0.4,0,0.2,1)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- COMPONENTS -->
+<section id="components">
+  <div class="wrap">
+    <div class="eyebrow">06 — Component Library</div>
+    <h2 class="section-title">The <em>parts</em></h2>
+    <p class="section-desc">Every reusable element in Cast. Each component has one job and one aesthetic state.</p>
+    <div class="tab-list">
+      <button class="tab-btn active" onclick="switchTab('buttons',this)">Buttons</button>
+      <button class="tab-btn" onclick="switchTab('badges',this)">Badges</button>
+      <button class="tab-btn" onclick="switchTab('cards',this)">Cards</button>
+      <button class="tab-btn" onclick="switchTab('inputs',this)">Inputs</button>
+      <button class="tab-btn" onclick="switchTab('identity',this)">Identity</button>
+    </div>
+
+    <div id="tab-buttons" class="tab-panel active">
+      <div class="comp-grid">
+        <div class="comp-card"><div class="comp-head"><div class="comp-name">Primary CTA</div><div class="comp-tag">Syne 700 · 44px tall</div></div><div class="comp-body"><button class="cast-btn btn-primary">Enter the Court</button><button class="cast-btn btn-primary" style="font-size:11px">Unlock the truth — 500 CFA</button></div></div>
+        <div class="comp-card"><div class="comp-head"><div class="comp-name">Secondary CTA</div><div class="comp-tag">Bordered · transparent</div></div><div class="comp-body"><button class="cast-btn btn-secondary">View Burn Book</button><button class="cast-btn btn-secondary" style="color:var(--gold);border-color:rgba(201,168,76,0.3)">Join Inner Court</button></div></div>
+        <div class="comp-card"><div class="comp-head"><div class="comp-name">Ghost / Text</div><div class="comp-tag">Tertiary actions</div></div><div class="comp-body"><button class="cast-btn btn-ghost">Skip this question</button><button class="cast-btn btn-ghost" style="color:var(--red)">Delete account</button></div></div>
+        <div class="comp-card"><div class="comp-head"><div class="comp-name">Premium CTA</div><div class="comp-tag">Gold · Inner Court</div></div><div class="comp-body"><button class="cast-btn btn-gold">Join the Inner Court</button><button class="cast-btn" style="background:rgba(201,168,76,0.1);color:var(--gold);border:1px solid rgba(201,168,76,0.25);font-family:var(--display);font-size:13px;font-weight:700">Chairman Pass</button></div></div>
+      </div>
+    </div>
+
+    <div id="tab-badges" class="tab-panel">
+      <div style="display:flex;flex-wrap:wrap;gap:10px;padding:20px 0">
+        <span class="badge badge-court">&#9733; Inner Court</span>
+        <span class="badge badge-villain">Certified Villain</span>
+        <span class="badge badge-live">&#9679; Live</span>
+        <span class="badge badge-locked">Locked</span>
+        <span class="badge badge-blue">Squad Admin</span>
+        <span class="badge" style="background:rgba(138,200,80,0.08);color:#8AC850;border:1px solid rgba(138,200,80,0.18)">Streak Lord</span>
+        <span class="badge" style="background:rgba(232,57,14,0.08);color:var(--red);border:1px solid rgba(232,57,14,0.18)">7-Day Streak</span>
+        <span class="badge badge-court">Chairman Pass</span>
+        <span class="badge" style="background:rgba(138,200,80,0.07);color:#8AC850;border:1px solid rgba(138,200,80,0.15)">&#10003; Verified Creator</span>
+        <span class="badge badge-locked">Tournament Entry</span>
+      </div>
+    </div>
+
+    <div id="tab-cards" class="tab-panel">
+      <div style="display:flex;flex-direction:column;gap:14px;max-width:480px">
+        <div class="blur-card">
+          <div class="blur-head"><div class="av">A</div><div style="margin-left:10px"><div class="blur-title">Your Burn Book</div><div style="font-size:11px;color:var(--tt)">@adaeze_unilag</div></div><div class="blur-count">14 verdicts</div></div>
+          <div class="blur-row"><div class="blur-text" id="b1">Most likely to steal a boyfriend from her own bestie</div><button class="blur-unlock-btn" onclick="revealBlur('b1',this)">500 CFA</button></div>
+          <div class="blur-row"><div class="blur-text" id="b2">Most likely to be lowkey famous by 30</div><button class="blur-unlock-btn" onclick="revealBlur('b2',this)">500 CFA</button></div>
+          <div class="blur-row"><div class="blur-text" id="b3">Most likely to ghost everyone and move abroad</div><button class="blur-unlock-btn" onclick="revealBlur('b3',this)">500 CFA</button></div>
+        </div>
+        <div style="background:linear-gradient(135deg,rgba(201,168,76,0.07),rgba(201,168,76,0.02));border:1px solid rgba(201,168,76,0.18);border-radius:16px;padding:22px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><div style="width:30px;height:30px;background:var(--gold);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px">&#9733;</div><div><div style="font-family:var(--display);font-size:15px;font-weight:800;color:var(--gold)">Inner Court</div><div style="font-size:11px;color:var(--tt)">Absolute truth. Always.</div></div><div style="margin-left:auto;font-family:var(--display);font-size:17px;font-weight:800;color:var(--gold)">&#8358;3,500<span style="font-size:10px;font-weight:400;color:var(--tt)">/mo</span></div></div>
+          <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:18px"><div style="font-size:12px;color:var(--ts);display:flex;gap:7px"><span style="color:var(--gold)">&#10003;</span>All verdicts unlocked. Forever.</div><div style="font-size:12px;color:var(--ts);display:flex;gap:7px"><span style="color:var(--gold)">&#10003;</span>Immunity Shield active</div><div style="font-size:12px;color:var(--ts);display:flex;gap:7px"><span style="color:var(--gold)">&#10003;</span>Elite badge on every vote</div></div>
+          <button class="cast-btn btn-gold" style="width:100%;justify-content:center;border-radius:4px">Join the Inner Court</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-inputs" class="tab-panel">
+      <div style="max-width:440px;display:flex;flex-direction:column;gap:14px">
+        <div><div style="font-size:11px;color:var(--tt);margin-bottom:6px;letter-spacing:0.06em;text-transform:uppercase">Phone number</div><input class="cast-input" type="text" placeholder="+234 or +237 to start"></div>
+        <div><div style="font-size:11px;color:var(--tt);margin-bottom:6px;letter-spacing:0.06em;text-transform:uppercase">Claim your handle</div><input class="cast-input" type="text" value="@adaeze_cast"></div>
+        <div><div style="font-size:11px;color:var(--tt);margin-bottom:6px;letter-spacing:0.06em;text-transform:uppercase">Deck name</div><input class="cast-input" type="text" placeholder="Give your deck a name your campus is afraid of"></div>
+        <div style="border:1px solid rgba(232,57,14,0.28);border-radius:8px;padding:12px;background:rgba(232,57,14,0.03)"><div style="font-size:11px;color:var(--red);margin-bottom:4px">Error state</div><input class="cast-input" type="text" value="handle_taken" style="border-color:rgba(232,57,14,0.4)"><div style="font-size:11px;color:var(--red);margin-top:6px">That name is already taken. Try another.</div></div>
+      </div>
+    </div>
+
+    <div id="tab-identity" class="tab-panel">
+      <div style="display:flex;gap:28px;flex-wrap:wrap;align-items:flex-start">
+        <div><div class="tag mb16">Avatar Sizes</div><div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+          <div style="text-align:center"><div style="width:60px;height:60px;border-radius:50%;background:var(--s3);border:2px solid var(--bx);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:20px;font-weight:800;color:var(--ts)">A</div><div style="font-size:9px;color:var(--tt);margin-top:4px">64px</div></div>
+          <div style="text-align:center"><div style="width:46px;height:46px;border-radius:50%;background:rgba(232,57,14,0.08);border:2px solid rgba(232,57,14,0.28);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:15px;font-weight:800;color:var(--red)">K</div><div style="font-size:9px;color:var(--tt);margin-top:4px">48px</div></div>
+          <div style="text-align:center"><div style="width:34px;height:34px;border-radius:50%;background:rgba(201,168,76,0.08);border:1.5px solid rgba(201,168,76,0.35);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:12px;font-weight:800;color:var(--gold)">E</div><div style="font-size:9px;color:var(--tt);margin-top:4px">36px</div></div>
+          <div style="text-align:center"><div style="width:26px;height:26px;border-radius:50%;background:var(--s3);border:1px solid var(--b);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:10px;font-weight:800;color:var(--tt)">M</div><div style="font-size:9px;color:var(--tt);margin-top:4px">28px</div></div>
+        </div></div>
+        <div><div class="tag mb16">Cast Score</div><div style="display:flex;gap:14px">
+          <div class="score-wrap"><div class="score-ring" style="border-color:rgba(232,57,14,0.25)">847</div><div class="score-lbl">Aura</div></div>
+          <div class="score-wrap"><div class="score-ring" style="border-color:rgba(232,57,14,0.25);color:var(--red)">391</div><div class="score-lbl">Toxicity</div></div>
+        </div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SCREENS -->
+<section id="screens" class="bg-s1">
+  <div class="wrap-wide">
+    <div class="eyebrow" style="padding:0 40px">07 — Key Screens</div>
+    <h2 class="section-title" style="padding:0 40px">The <em>world</em></h2>
+    <p class="section-desc" style="padding:0 40px">Five screens that define Cast's visual language. Scroll to see them all.</p>
+    <div class="screens-scroll" style="padding:0 40px 20px">
+
+      <!-- Screen 1: Genesis -->
+      <div class="screen-item">
+        <div class="phone">
+          <div class="phone-notch"><div class="phone-pill"></div></div>
+          <div class="screen-h" style="background:#080808;display:flex;flex-direction:column;padding:22px;position:relative;overflow:hidden">
+            <div style="position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 80%,rgba(232,57,14,0.14) 0%,transparent 70%)"></div>
+            <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(232,57,14,0.55);position:relative;z-index:1">2,847,193 truths Cast today &#9679;</div>
+            <div style="flex:1"></div>
+            <div style="position:relative;z-index:1">
+              <div style="font-family:var(--display);font-size:46px;font-weight:800;line-height:0.88;letter-spacing:-0.04em;color:#F0EDE8;margin-bottom:14px">EVERY<br>THING<br>CA<span style="color:#E8390E">STS.</span></div>
+              <div style="font-size:11px;color:rgba(240,237,232,0.45);margin-bottom:18px;line-height:1.5">What your people really think.<br>Locked. Until now.</div>
+              <div style="background:#E8390E;color:#fff;font-family:var(--display);font-size:12px;font-weight:700;padding:12px;border-radius:4px;text-align:center">ENTER THE COURT &#8594;</div>
+            </div>
+          </div>
+        </div>
+        <div class="screen-lbl"><div class="screen-lbl-name">Genesis — Landing</div><div class="screen-lbl-route">/ · Public · Viral entry</div></div>
+      </div>
+
+      <!-- Screen 2: Home -->
+      <div class="screen-item">
+        <div class="phone">
+          <div class="phone-notch"><div class="phone-pill"></div></div>
+          <div class="screen-h" style="background:var(--s1);display:flex;flex-direction:column">
+            <div style="padding:14px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.06)">
+              <div style="font-family:var(--display);font-size:16px;font-weight:800;color:#F0EDE8">C<span style="color:#E8390E">A</span>ST</div>
+              <div style="font-size:10px;color:rgba(240,237,232,0.3)">Wed 6 Nov</div>
+              <div style="width:26px;height:26px;border-radius:50%;border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:13px;color:rgba(240,237,232,0.5);position:relative"><span>&#128276;</span><span style="position:absolute;top:2px;right:2px;width:7px;height:7px;border-radius:50%;background:#E8390E;border:1.5px solid var(--s1)"></span></div>
+            </div>
+            <div style="flex:1;padding:14px 14px;overflow:hidden">
+              <div style="background:rgba(232,57,14,0.07);border:1px solid rgba(232,57,14,0.18);border-radius:8px;padding:11px;margin-bottom:10px"><div style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#E8390E;margin-bottom:5px">Today's Chaos · Day 12 &#128293;</div><div style="font-size:10px;color:rgba(240,237,232,0.88);line-height:1.4">If your squad had to disappear one member for 30 days, who is it?</div></div>
+              <div style="font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:rgba(240,237,232,0.2);margin-bottom:7px">Pending verdicts · 3 new</div>
+              <div style="background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.06);border-radius:7px;padding:10px;margin-bottom:7px;display:flex;align-items:center;gap:9px"><div style="width:28px;height:28px;border-radius:50%;background:rgba(232,57,14,0.08);border:1px solid rgba(232,57,14,0.18);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">&#9878;</div><div><div style="font-size:9px;font-weight:500;color:rgba(240,237,232,0.75);margin-bottom:2px">Your squad voted</div><div style="font-size:9px;filter:blur(2.5px);color:rgba(240,237,232,0.45)">Most likely to steal a boyfri...</div></div></div>
+              <div style="background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.06);border-radius:7px;padding:10px;display:flex;align-items:center;gap:9px"><div style="width:28px;height:28px;border-radius:50%;background:rgba(232,57,14,0.08);border:1px solid rgba(232,57,14,0.18);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">&#128293;</div><div><div style="font-size:9px;font-weight:500;color:rgba(240,237,232,0.75);margin-bottom:2px">Your squad voted</div><div style="font-size:9px;filter:blur(2.5px);color:rgba(240,237,232,0.45)">Most likely to go abroad and...</div></div></div>
+            </div>
+            <div style="border-top:1px solid rgba(255,255,255,0.06);display:flex;padding:7px 0 3px">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:3px 0;font-size:7px;color:#E8390E">&#9889;<div>Home</div></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:3px 0;font-size:7px;color:rgba(240,237,232,0.25)">&#128101;<div>Squads</div></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:3px 0;font-size:7px;color:rgba(240,237,232,0.25)">&#9878;<div>Court</div></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:3px 0;font-size:7px;color:rgba(240,237,232,0.25)">&#127942;<div>Arena</div></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:3px 0;font-size:7px;color:rgba(240,237,232,0.25)">&#128100;<div>Vault</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="screen-lbl"><div class="screen-lbl-name">Home — Habit Engine</div><div class="screen-lbl-route">/app/home · Daily loop</div></div>
+      </div>
+
+      <!-- Screen 3: Courtroom -->
+      <div class="screen-item">
+        <div class="phone">
+          <div class="phone-notch"><div class="phone-pill"></div></div>
+          <div class="screen-h" style="background:var(--s1);display:flex;flex-direction:column;padding:18px">
+            <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(240,237,232,0.25);text-align:center;margin-bottom:7px">The Courtroom · Unilag Edition</div>
+            <div style="font-family:var(--display);font-size:17px;font-weight:700;color:#F0EDE8;text-align:center;line-height:1.2;margin-bottom:20px">Most likely to ghost<br>their own wedding</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:1">
+              <div style="border-radius:11px;border:1.5px solid rgba(255,255,255,0.07);background:rgba(201,168,76,0.04);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;font-family:var(--display);font-size:22px;font-weight:800;color:rgba(240,237,232,0.55)">A<div style="font-family:var(--mono);font-size:9px;color:rgba(240,237,232,0.3);letter-spacing:0.06em">ADAEZE</div></div>
+              <div style="border-radius:11px;border:1.5px solid rgba(255,255,255,0.07);background:rgba(99,155,220,0.04);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;font-family:var(--display);font-size:22px;font-weight:800;color:rgba(240,237,232,0.55)">K<div style="font-family:var(--mono);font-size:9px;color:rgba(240,237,232,0.3);letter-spacing:0.06em">KOLADE</div></div>
+              <div style="border-radius:11px;border:1.5px solid rgba(232,57,14,0.3);background:rgba(232,57,14,0.06);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;font-family:var(--display);font-size:22px;font-weight:800;color:#E8390E">E<div style="font-family:var(--mono);font-size:9px;color:rgba(232,57,14,0.6);letter-spacing:0.06em">EMEKA</div></div>
+              <div style="border-radius:11px;border:1.5px solid rgba(255,255,255,0.07);background:rgba(138,200,80,0.04);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;font-family:var(--display);font-size:22px;font-weight:800;color:rgba(240,237,232,0.55)">M<div style="font-family:var(--mono);font-size:9px;color:rgba(240,237,232,0.3);letter-spacing:0.06em">MIRIAM</div></div>
+            </div>
+            <div style="display:flex;gap:4px;margin-top:14px;justify-content:center">
+              <div style="width:18px;height:3px;border-radius:2px;background:var(--red)"></div>
+              <div style="width:18px;height:3px;border-radius:2px;background:var(--red)"></div>
+              <div style="width:18px;height:3px;border-radius:2px;background:var(--red)"></div>
+              <div style="width:18px;height:3px;border-radius:2px;background:rgba(232,57,14,0.3)"></div>
+              <div style="width:18px;height:3px;border-radius:2px;background:rgba(255,255,255,0.08)"></div>
+              <div style="width:18px;height:3px;border-radius:2px;background:rgba(255,255,255,0.08)"></div>
+              <div style="width:18px;height:3px;border-radius:2px;background:rgba(255,255,255,0.08)"></div>
+              <div style="width:18px;height:3px;border-radius:2px;background:rgba(255,255,255,0.08)"></div>
+            </div>
+          </div>
+        </div>
+        <div class="screen-lbl"><div class="screen-lbl-name">Courtroom — Core Ritual</div><div class="screen-lbl-route">/app/courtroom · Voting</div></div>
+      </div>
+
+      <!-- Screen 4: Burn Book -->
+      <div class="screen-item">
+        <div class="phone">
+          <div class="phone-notch"><div class="phone-pill"></div></div>
+          <div class="screen-h" style="background:var(--s1);display:flex;flex-direction:column">
+            <div style="padding:14px 14px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:9px"><span style="font-size:14px;color:rgba(240,237,232,0.35)">&#8592;</span><div style="font-family:var(--display);font-size:14px;font-weight:700;color:#F0EDE8">Your Burn Book</div><div style="margin-left:auto;font-size:9px;padding:2px 7px;background:rgba(232,57,14,0.1);color:#E8390E;border-radius:3px">14 new</div></div>
+            <div style="flex:1;padding:10px;overflow:hidden;display:flex;flex-direction:column;gap:7px">
+              <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:10px;display:flex;align-items:center;gap:9px"><div style="width:26px;height:26px;border-radius:6px;background:rgba(232,57,14,0.09);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px">&#9878;</div><div style="flex:1;font-size:9px;color:rgba(240,237,232,0.35);filter:blur(3px);line-height:1.4">Most likely to steal a boyfriend from her own bestie</div><div style="font-size:8px;color:#E8390E;border:1px solid rgba(232,57,14,0.22);padding:2px 6px;border-radius:3px;white-space:nowrap;cursor:pointer">500 CFA</div></div>
+              <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:10px;display:flex;align-items:center;gap:9px"><div style="width:26px;height:26px;border-radius:6px;background:rgba(232,57,14,0.09);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px">&#128293;</div><div style="flex:1;font-size:9px;color:rgba(240,237,232,0.35);filter:blur(3px);line-height:1.4">Most likely to become famous and forget everyone</div><div style="font-size:8px;color:#E8390E;border:1px solid rgba(232,57,14,0.22);padding:2px 6px;border-radius:3px;white-space:nowrap;cursor:pointer">500 CFA</div></div>
+              <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:10px;display:flex;align-items:center;gap:9px"><div style="width:26px;height:26px;border-radius:6px;background:rgba(232,57,14,0.09);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px">&#128065;</div><div style="flex:1;font-size:9px;color:rgba(240,237,232,0.35);filter:blur(3px);line-height:1.4">Most likely to have a secret second life nobody knows</div><div style="font-size:8px;color:#E8390E;border:1px solid rgba(232,57,14,0.22);padding:2px 6px;border-radius:3px;white-space:nowrap;cursor:pointer">500 CFA</div></div>
+            </div>
+            <div style="padding:10px;background:#E8390E;margin:0 10px 10px;border-radius:6px;text-align:center;font-family:var(--display);font-size:10px;font-weight:700;color:#fff;cursor:pointer">Join Inner Court — See Everything &#9733;</div>
+          </div>
+        </div>
+        <div class="screen-lbl"><div class="screen-lbl-name">Burn Book — Paywall</div><div class="screen-lbl-route">/app/profile/burn-book</div></div>
+      </div>
+
+      <!-- Screen 5: Execution / Verdict Sealed -->
+      <div class="screen-item">
+        <div class="phone">
+          <div class="phone-notch"><div class="phone-pill"></div></div>
+          <div class="screen-h" style="background:#080808;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:26px;position:relative;overflow:hidden">
+            <div style="position:absolute;inset:0;background:radial-gradient(ellipse 65% 65% at 50% 50%,rgba(232,57,14,0.12) 0%,transparent 70%)"></div>
+            <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(232,57,14,0.45);margin-bottom:22px;position:relative">&#9878; Verdict Sealed</div>
+            <div style="font-family:var(--display);font-size:40px;font-weight:800;line-height:0.88;letter-spacing:-0.03em;color:#F0EDE8;text-align:center;margin-bottom:18px;position:relative">YOUR<br>SQUAD<br><span style="color:#E8390E">RULED.</span></div>
+            <div style="font-family:var(--serif);font-size:13px;font-style:italic;color:rgba(240,237,232,0.35);text-align:center;margin-bottom:28px;position:relative">The truth always comes out.</div>
+            <div style="display:flex;gap:7px;position:relative">
+              <div style="background:rgba(232,57,14,0.09);border:1px solid rgba(232,57,14,0.22);border-radius:4px;padding:9px 13px;font-family:var(--display);font-size:9px;font-weight:700;color:#E8390E">VIEW VERDICTS</div>
+              <div style="background:#E8390E;border-radius:4px;padding:9px 13px;font-family:var(--display);font-size:9px;font-weight:700;color:#fff">CAST TO STATUS</div>
+            </div>
+          </div>
+        </div>
+        <div class="screen-lbl"><div class="screen-lbl-name">Execution — Verdict Sealed</div><div class="screen-lbl-route">/app/courtroom/execution</div></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- VOICE -->
+<section id="voice">
+  <div class="wrap">
+    <div class="eyebrow">08 — Voice &amp; Tone</div>
+    <h2 class="section-title">How Cast <em>speaks</em></h2>
+    <p class="section-desc">Four emotional modes. Each screen knows which one it is. Copy never drifts between modes mid-screen.</p>
+    <div class="tone-grid">
+      <div class="tone-card tc-red"><div class="tone-num">01</div><div class="tone-name">Provocateur</div><div class="tone-trigger">Default · Feed · Voting · Leaderboards</div><div class="tone-eg">"Your squad just Cast you.<br>Open it if you're brave."</div><div style="margin-top:10px;font-size:11px;color:var(--tt);line-height:1.5">Sharp. Direct. Has opinions. The voice that makes you feel like the app knows something you don't.</div></div>
+      <div class="tone-card tc-gold"><div class="tone-num">02</div><div class="tone-name">Intimate</div><div class="tone-trigger">Burn Book reveals · AI Persona · Unlock moments</div><div class="tone-eg">"The truth is yours.<br>What you do with it is your business."</div><div style="margin-top:10px;font-size:11px;color:var(--tt);line-height:1.5">Quiet. Almost a whisper. Used when the user has just paid, just seen something they cannot unsee.</div></div>
+      <div class="tone-card tc-green"><div class="tone-num">03</div><div class="tone-name">Hype</div><div class="tone-trigger">Wins · Streaks · Tournament victories · Badges</div><div class="tone-eg">"Your squad WON the Lagos Cast War.<br>Accept their apologies."</div><div style="margin-top:10px;font-size:11px;color:var(--tt);line-height:1.5">Loud. Culturally fluent. Knows the slang. Used sparingly so it never loses impact.</div></div>
+      <div class="tone-card tc-gray"><div class="tone-num">04</div><div class="tone-name">Clinical</div><div class="tone-trigger">Transactions · KYC · Errors · Legal</div><div class="tone-eg">"Transaction confirmed.<br>Reference: #8X7K-9N2M"</div><div style="margin-top:10px;font-size:11px;color:var(--tt);line-height:1.5">Flat. Precise. Zero personality. Cast drops the mask for legal and financial moments.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- LOGO -->
+<section id="logo" class="bg-s1">
+  <div class="wrap">
+    <div class="eyebrow">09 — Logo System</div>
+    <h2 class="section-title">The <em>mark</em></h2>
+    <p class="section-desc">Cast's identity is typographic at its core. The wordmark is the logo. No mascot. No abstract symbol. The word itself carries all the meaning.</p>
+    <div class="logo-grid">
+      <div class="logo-cell"><div class="logo-cell-bg" style="background:#080808"><div class="wm" style="font-size:48px;color:#F0EDE8">CAST</div></div><div class="logo-cell-lbl">Primary · Dark (default use)</div></div>
+      <div class="logo-cell"><div class="logo-cell-bg" style="background:#F0EDE8"><div class="wm" style="font-size:48px;color:#080808">CAST</div></div><div class="logo-cell-lbl">Primary · Light (external use)</div></div>
+      <div class="logo-cell"><div class="logo-cell-bg" style="background:#080808"><div class="wm" style="font-size:48px;color:#E8390E">CAST</div></div><div class="logo-cell-lbl">Red variant — app icon, sharecard</div></div>
+      <div class="logo-cell"><div class="logo-cell-bg" style="background:#080808"><div style="width:52px;height:52px;background:#E8390E;border-radius:11px;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:26px;font-weight:800;color:#fff">C</div></div><div class="logo-cell-lbl">Symbol — favicon, app icon</div></div>
+      <div class="logo-cell"><div class="logo-cell-bg" style="background:#080808"><div class="wm" style="font-size:26px;color:var(--tp)">CAST <span style="color:var(--tt);font-size:15px;font-weight:500">by Gravity</span></div></div><div class="logo-cell-lbl">Lockup — B2B, enterprise use</div></div>
+      <div class="logo-cell"><div class="logo-cell-bg" style="background:#E8390E"><div class="wm" style="font-size:48px;color:#fff">CAST</div></div><div class="logo-cell-lbl">Reversed on red — notifications</div></div>
+    </div>
+    <div class="tag mb16">Logo Rules</div>
+    <div class="g3">
+      <div style="border:1px solid rgba(232,57,14,0.18);border-radius:16px;overflow:hidden"><div style="height:76px;background:#080808;display:flex;align-items:center;justify-content:center"><div class="wm" style="font-size:34px;color:#E8390E;transform:skew(-10deg)">CAST</div></div><div style="padding:11px 14px;background:rgba(232,57,14,0.03)"><div style="font-size:10px;color:var(--red);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:2px">&#10007; Never skew or distort</div><div style="font-size:11px;color:var(--tt)">The wordmark is never stretched, squashed, or italicised.</div></div></div>
+      <div style="border:1px solid rgba(232,57,14,0.18);border-radius:16px;overflow:hidden"><div style="height:76px;background:#555;display:flex;align-items:center;justify-content:center"><div class="wm" style="font-size:34px;color:#F0EDE8">CAST</div></div><div style="padding:11px 14px;background:rgba(232,57,14,0.03)"><div style="font-size:10px;color:var(--red);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:2px">&#10007; No mid-grey backgrounds</div><div style="font-size:11px;color:var(--tt)">Cast only appears on Void Black, Bone White, or Cast Red.</div></div></div>
+      <div style="border:1px solid rgba(232,57,14,0.18);border-radius:16px;overflow:hidden"><div style="height:76px;background:#080808;display:flex;align-items:center;justify-content:center"><div style="font-family:var(--mono);font-size:34px;font-weight:500;color:#F0EDE8">CAST</div></div><div style="padding:11px 14px;background:rgba(232,57,14,0.03)"><div style="font-size:10px;color:var(--red);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:2px">&#10007; Never in another font</div><div style="font-size:11px;color:var(--tt)">The wordmark is always Syne 800. No exceptions.</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SHARECARD -->
+<section id="sharecard">
+  <div class="wrap">
+    <div class="eyebrow">10 — Sharecard Design</div>
+    <h2 class="section-title">The <em>viral</em> surface</h2>
+    <p class="section-desc">Every sharecard is a billboard. Legible in a WhatsApp Status thumbnail, instantly understood on a dark phone screen at midnight, and makes the viewer feel like they are missing something urgent.</p>
+    <div class="g2 mb40">
+      <div>
+        <div class="sharecard">
+          <div style="position:absolute;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 70%,rgba(232,57,14,0.13) 0%,transparent 70%)"></div>
+          <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.14em;color:rgba(232,57,14,0.55);position:relative">CAST · BURN BOOK</div>
+          <div style="flex:1;display:flex;flex-direction:column;justify-content:center;position:relative">
+            <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(240,237,232,0.3);margin-bottom:10px">@adaeze_unilag was voted</div>
+            <div style="font-family:var(--serif);font-size:26px;font-style:italic;color:#F0EDE8;line-height:1.15;margin-bottom:14px">"Most likely to steal a boyfriend from her own bestie."</div>
+            <div style="font-size:10px;color:rgba(240,237,232,0.3)">3 of 7 squad members agreed.</div>
+          </div>
+          <div style="position:relative"><div style="height:1px;background:rgba(255,255,255,0.08);margin-bottom:12px"></div><div style="display:flex;align-items:center;justify-content:space-between"><div class="wm" style="font-size:14px;color:#F0EDE8">CAST</div><div style="font-family:var(--mono);font-size:8px;color:rgba(240,237,232,0.25)">cast.gg/join</div></div></div>
+        </div>
+      </div>
+      <div>
+        <div class="tag mb16">Sharecard Specifications</div>
+        <table class="spec-table">
+          <thead><tr><th>Property</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>Dimensions</td><td>1080 × 1920px — 9:16 WhatsApp Status native</td></tr>
+            <tr><td>Background</td><td>Void Black #080808 + Cast Red radial glow</td></tr>
+            <tr><td>Verdict text</td><td>Instrument Serif Italic · 72–96px · Bone White</td></tr>
+            <tr><td>Label text</td><td>DM Mono 400 · 28px · Caps · 30% opacity</td></tr>
+            <tr><td>Logo</td><td>CAST wordmark · bottom left · Syne 800 · 48px</td></tr>
+            <tr><td>URL</td><td>cast.gg/join · bottom right · DM Mono 300</td></tr>
+            <tr><td>Generated by</td><td>SharecardService · Cloudflare R2 · CDN-cached</td></tr>
+          </tbody>
+        </table>
+        <div class="tag mb16 mt24">Three Card Types</div>
+        <div style="display:flex;flex-direction:column;gap:9px">
+          <div style="border:1px solid var(--b);border-radius:4px;padding:11px 14px;display:flex;gap:10px;align-items:center"><div style="width:7px;height:7px;border-radius:50%;background:var(--red);flex-shrink:0"></div><div><div style="font-weight:500;font-size:12px;margin-bottom:2px">Burn Book Card</div><div style="font-size:11px;color:var(--tt)">Revealed or blurred verdict with tally. Most common. The viral engine.</div></div></div>
+          <div style="border:1px solid var(--b);border-radius:4px;padding:11px 14px;display:flex;gap:10px;align-items:center"><div style="width:7px;height:7px;border-radius:50%;background:var(--gold);flex-shrink:0"></div><div><div style="font-weight:500;font-size:12px;margin-bottom:2px">Archetype Card</div><div style="font-size:11px;color:var(--tt)">Hermes AI persona reveal. High share rate.</div></div></div>
+          <div style="border:1px solid var(--b);border-radius:4px;padding:11px 14px;display:flex;gap:10px;align-items:center"><div style="width:7px;height:7px;border-radius:50%;background:#22C55E;flex-shrink:0"></div><div><div style="font-weight:500;font-size:12px;margin-bottom:2px">Tournament Win Card</div><div style="font-size:11px;color:var(--tt)">Squad victory with prize total. Recruitment driver.</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="f-brand">C<span>A</span>ST</div>
+  <div class="f-meta">Visual Bible v1.0 · Gravity Technology · Confidential · 2025</div>
+  <div class="f-meta">For design and engineering use only.</div>
+</footer>
+
+<div id="toast">Copied to clipboard</div>
+
+<script>
+window.addEventListener('scroll',function(){
+  var d=document.documentElement;
+  var pct=(d.scrollTop/(d.scrollHeight-d.clientHeight))*100;
+  document.getElementById('progressBar').style.width=pct+'%';
+  var ids=['brand','color','typography','spacing','motion','components','screens','voice','logo','sharecard'];
+  var cur='';
+  ids.forEach(function(id){var el=document.getElementById(id);if(el&&el.getBoundingClientRect().top<80)cur=id;});
+  document.querySelectorAll('.nav-links a').forEach(function(a){a.classList.toggle('active',a.getAttribute('href')==='#'+cur);});
+});
+function switchTab(name,btn){
+  document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
+  document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.remove('active');});
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
+}
+function revealBlur(id,btn){
+  var el=document.getElementById(id);
+  el.classList.add('revealed');
+  btn.textContent='Revealed';
+  btn.style.color='#22C55E';
+  btn.style.borderColor='rgba(34,197,94,0.28)';
+  btn.disabled=true;
+}
+function copyColor(hex){
+  if(navigator.clipboard)navigator.clipboard.writeText(hex).catch(function(){});
+  var t=document.getElementById('toast');
+  t.textContent='Copied '+hex;
+  t.style.opacity='1';
+  setTimeout(function(){t.style.opacity='0';},1800);
+}
+</script>
+</body>
+</html>

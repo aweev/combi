@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package combi.fx.v1;
+
+option go_package = "github.com/combi/gen/go/combi/fx/v1;fxv1";
+
+import "google/protobuf/timestamp.proto";
+import "buf/validate/validate.proto";
+
+// FxService monitors currency conversions and locks trade rates dynamically [p. 32].
+service FxService {
+  // GetExchangeRate returns conversion rates between Naira (NGN) and Central CFA [p. 32].
+  rpc GetExchangeRate (GetExchangeRateRequest) returns (GetExchangeRateResponse);
+  // LockConversionQuote converts a fiat amount dynamically and issues a temporary trade-lock handle [p. 32].
+  rpc LockConversionQuote (LockConversionQuoteRequest) returns (LockConversionQuoteResponse);
+}
+
+// ExchangeRate contains currency conversion rates [p. 32].
+message ExchangeRate {
+  // source_currency is the checkout source currency [p. 32].
+  string source_currency = 1 [(buf.validate.field).string.len = 3];
+  // target_currency is the system target currency [p. 32].
+  string target_currency = 2 [(buf.validate.field).string.len = 3];
+  // rate_scale_factor is the rate scale factor.
+  int64 rate_scale_factor = 3 [(buf.validate.field).int64.gt = 0];
+  // fetched_at is when exchange rate was fetched.
+  google.protobuf.Timestamp fetched_at = 4;
+}
+
+// GetExchangeRateRequest is the rates query payload.
+message GetExchangeRateRequest {
+  // source_currency is the target source currency.
+  string source_currency = 1 [(buf.validate.field).string.len = 3];
+  // target_currency is the target target currency.
+  string target_currency = 2 [(buf.validate.field).string.len = 3];
+}
+
+// GetExchangeRateResponse returns exchange rate details.
+message GetExchangeRateResponse {
+  // rate is the currency conversion rates.
+  ExchangeRate rate = 1;
+}
+
+// LockConversionQuoteRequest is the conversion quote payload.
+message LockConversionQuoteRequest {
+  // source_currency is the target source currency.
+  string source_currency = 1 [(buf.validate.field).string.len = 3];
+  // target_currency is the target target currency.
+  string target_currency = 2 [(buf.validate.field).string.len = 3];
+  // source_amount_subunit is the source subunit value.
+  int64 source_amount_subunit = 3 [(buf.validate.field).int64.gt = 0];
+}
+
+// LockConversionQuoteResponse returns locked conversion details.
+message LockConversionQuoteResponse {
+  // quote_id is the unique quote ULID.
+  string quote_id = 1 [(buf.validate.field).string.len = 26];
+  // converted_target_subunit is the converted target subunit.
+  int64 converted_target_subunit = 2;
+  // locked_rate is the locked currency conversion rates.
+  ExchangeRate locked_rate = 3;
+  // expires_at is when the conversion quote expires.
+  google.protobuf.Timestamp expires_at = 4;
+}

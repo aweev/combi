@@ -1,0 +1,147 @@
+# Africa OS — local development stack
+# Usage: docker compose -f docker-compose.dev.yml up -d
+version: "3.9"
+
+services:
+
+  # ── PostgreSQL (one instance, per-service databases) ────────────────────────
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: combi
+      POSTGRES_PASSWORD: combi
+      POSTGRES_DB: combi
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infra/scripts/init-dbs.sh:/docker-entrypoint-initdb.d/init-dbs.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U combi"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── Redis (cache + offline queue flush) ─────────────────────────────────────
+  redis:
+    image: redis:8-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ── NATS JetStream (Event bus — lightweight, fast, multi-tenant) ────────────
+  nats:
+    image: nats:2.10-alpine
+    restart: unless-stopped
+    command: ["-js", "-m", "8222"]
+    ports:
+      - "4222:4222"   # Client API
+      - "8222:8222"   # Monitoring / Admin
+    volumes:
+      - natsdata:/data
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8222/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ── OpenTelemetry Collector (traces → Tempo, metrics → Prometheus) ──────────
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.126.0
+    restart: unless-stopped
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./infra/docker/otel-collector.yaml:/etc/otel-collector-config.yaml:ro
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+      - "8889:8889"   # Prometheus scrape
+    depends_on:
+      - tempo
+      - prometheus
+
+  # ── Grafana Tempo (distributed traces) ──────────────────────────────────────
+  tempo:
+    image: grafana/tempo:2.7.2
+    restart: unless-stopped
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - ./infra/docker/tempo.yaml:/etc/tempo.yaml:ro
+      - tempodata:/var/tempo
+    ports:
+      - "3200:3200"   # Tempo query
+
+  # ── Prometheus (metrics) ─────────────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v3.4.0
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=30d
+    volumes:
+      - ./infra/docker/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - promdata:/prometheus
+    ports:
+      - "9090:9090"
+
+  # ── Grafana (dashboards — traces + metrics + logs) ───────────────────────────
+  grafana:
+    image: grafana/grafana:12.0.2
+    restart: unless-stopped
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_FEATURE_TOGGLES_ENABLE: "traceqlEditor"
+    volumes:
+      - ./infra/docker/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml:ro
+      - grafanadata:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+      - tempo
+
+  # ── Temporal (workflow engine backend — used by cmd/workflow-engine) ────────
+  temporal:
+    image: temporalio/auto-setup:1.28.4
+    restart: unless-stopped
+    environment:
+      DB: postgres12
+      DB_PORT: 5432
+      POSTGRES_USER: combi
+      POSTGRES_PWD: combi
+      POSTGRES_SEEDS: postgres
+      DYNAMIC_CONFIG_FILE_PATH: /etc/temporal/dynamicconfig/docker.yaml
+    volumes:
+      - ./infra/docker/temporal-dynamicconfig.yaml:/etc/temporal/dynamicconfig/docker.yaml:ro
+    ports:
+      - "7233:7233"   # Frontend service (hostPort in config.yml)
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ── Jaeger (optional — alt trace UI) ─────────────────────────────────────────
+  jaeger:
+    image: jaegertracing/jaeger:2.5.0
+    restart: unless-stopped
+    ports:
+      - "16686:16686"  # UI
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+
+volumes:
+  pgdata:
+  redisdata:
+  natsdata:
+  tempodata:
+  promdata:
+  grafanadata:

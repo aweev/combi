@@ -1,0 +1,127 @@
+syntax = "proto3";
+
+package combi.burnbook.v1;
+
+option go_package = "github.com/combi/gen/go/combi/burnbook/v1;burnbookv1";
+
+import "google/protobuf/timestamp.proto";
+import "buf/validate/validate.proto";
+
+// BurnBookService manages the locked/unlocked state of user verdicts and reactions.
+service BurnBookService {
+  // GetBurnBook retrieves the current user's Burn Book, applying blur states dynamically.
+  rpc GetBurnBook (GetBurnBookRequest) returns (GetBurnBookResponse);
+
+  // UnlockEntry unlocks a specific blurred verdict entry [p. 23].
+  rpc UnlockEntry (UnlockEntryRequest) returns (UnlockEntryResponse);
+
+  // SubmitReaction allows a user to attach a reaction status (Accepted, Denied, Laughed) to an unlocked entry.
+  rpc SubmitReaction (SubmitReactionRequest) returns (SubmitReactionResponse);
+}
+
+// ReactionType defines the reaction status.
+enum ReactionType {
+  // REACTION_TYPE_UNSPECIFIED is the default, unused fallback value.
+  REACTION_TYPE_UNSPECIFIED = 0;
+  // REACTION_TYPE_ACCEPTED indicates the user agreed with the verdict.
+  REACTION_TYPE_ACCEPTED    = 1;
+  // REACTION_TYPE_DENIED indicates the user disagreed with the verdict.
+  REACTION_TYPE_DENIED      = 2;
+  // REACTION_TYPE_LAUGHED indicates the user was amused by the verdict.
+  REACTION_TYPE_LAUGHED     = 3;
+}
+
+// UnlockCost models pricing values.
+message UnlockCost {
+  // coin_cost is the cost in Coins.
+  int32 coin_cost = 1;
+  // fiat_cost_subunit is the cost in cents (or equivalent subunits).
+  int64 fiat_cost_subunit = 2;
+  // currency is the checkout currency code.
+  string currency = 3;
+}
+
+// BurnBookEntry represents a single verdict.
+message BurnBookEntry {
+  // id is the unique entry ULID.
+  string id = 1 [(buf.validate.field).string.len = 26];
+  // is_locked is true if the verdict is blurred.
+  bool is_locked = 2;
+  // prompt_text is the courtroom question text [p. 23].
+  string prompt_text = 3;
+  // matched_votes is the count of matches.
+  int32 matched_votes = 4;
+  // total_squad_votes is the total squad votes count.
+  int32 total_squad_votes = 5;
+  // squad_name is the display name of the squad.
+  string squad_name = 6;
+  // reaction is the active reaction.
+  ReactionType reaction = 7;
+  // cast_at is when the vote was acknowledged.
+  google.protobuf.Timestamp cast_at = 8;
+  // unlock_cost contains pricing values.
+  UnlockCost unlock_cost = 9;
+}
+
+// GetBurnBookRequest is the query payload.
+message GetBurnBookRequest {
+  // identity_id is the unique identity ULID.
+  string identity_id = 1 [(buf.validate.field).string.len = 26];
+  // limit is the maximum entries to return.
+  int32 limit = 2 [(buf.validate.field).int32.lte = 100];
+  // offset is the query offset.
+  int32 offset = 3;
+  // locale is the target language code.
+  string locale = 4 [(buf.validate.field).string.min_len = 2];
+}
+
+// GetBurnBookResponse returns the list of verdicts.
+message GetBurnBookResponse {
+  // entries is the list of active verdicts.
+  repeated BurnBookEntry entries = 1;
+  // total_locked_count tracks locked entries.
+  int32 total_locked_count = 2;
+  // total_unlocked_count tracks unlocked entries.
+  int32 total_unlocked_count = 3;
+}
+
+// UnlockEntryRequest is the unlock payload.
+message UnlockEntryRequest {
+  // identity_id is the unique identity ULID.
+  string identity_id = 1 [(buf.validate.field).string.len = 26];
+  // entry_id is the target entry ULID.
+  string entry_id = 2 [(buf.validate.field).string.len = 26];
+  // payment_method is the payment option selected.
+  oneof payment_method {
+    // payment_id is the checkout transaction ID.
+    string payment_id = 3 [(buf.validate.field).string.len = 26];
+    // use_coins is true if the payment option is Coins.
+    bool use_coins = 4;
+  }
+}
+
+// UnlockEntryResponse returns the unlocked prompt.
+message UnlockEntryResponse {
+  // success flags if unlock completed.
+  bool success = 1;
+  // unlocked_prompt_text is the unlocked prompt text.
+  string unlocked_prompt_text = 2;
+  // unlocked_at is when the unlock completed.
+  google.protobuf.Timestamp unlocked_at = 3;
+}
+
+// SubmitReactionRequest is the reaction payload.
+message SubmitReactionRequest {
+  // identity_id is the unique identity ULID.
+  string identity_id = 1 [(buf.validate.field).string.len = 26];
+  // entry_id is the target entry ULID.
+  string entry_id = 2 [(buf.validate.field).string.len = 26];
+  // reaction is the selected reaction.
+  ReactionType reaction = 3;
+}
+
+// SubmitReactionResponse returns status.
+message SubmitReactionResponse {
+  // success flags if reaction completed.
+  bool success = 1;
+}

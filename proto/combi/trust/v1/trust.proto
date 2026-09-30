@@ -1,0 +1,110 @@
+syntax = "proto3";
+
+package combi.trust.v1;
+
+option go_package = "github.com/combi/gen/go/combi/trust/v1;trustv1";
+
+import "google/protobuf/timestamp.proto";
+import "buf/validate/validate.proto";
+
+// TrustReputationService calculates Aura, Toxicity ratios, profile badges, and campus rankings [p. 5, 38].
+service TrustReputationService {
+  // GetReputationProfile returns reputation scores and active streak counters for a user profile [p. 3].
+  rpc GetReputationProfile (GetReputationProfileRequest) returns (GetReputationProfileResponse);
+  // GetReputationLeaderboard compiles high-performance global or campus-specific leaderboard registries [p. 6, 40].
+  rpc GetReputationLeaderboard (GetReputationLeaderboardRequest) returns (GetReputationLeaderboardResponse);
+  // EvaluateStreakBadges re-evaluates active voting streak milestones to award badges dynamically [p. 5, 38].
+  rpc EvaluateStreakBadges (EvaluateStreakBadgesRequest) returns (EvaluateStreakBadgesResponse);
+}
+
+// BadgeType identifies the category of the profile badge.
+enum BadgeType {
+  // BADGE_TYPE_UNSPECIFIED is the default, unused fallback value.
+  BADGE_TYPE_UNSPECIFIED   = 0;
+  // BADGE_TYPE_STREAK_LORD indicates high streak user [p. 5, 38].
+  BADGE_TYPE_STREAK_LORD   = 1;
+  // BADGE_TYPE_7_DAY_STREAK indicates continuous check-ins [p. 5, 38].
+  BADGE_TYPE_7_DAY_STREAK  = 2;
+  // BADGE_TYPE_VILLAIN indicates Certified Villain status [p. 5, 38].
+  BADGE_TYPE_VILLAIN       = 3;
+  // BADGE_TYPE_TOP_CASTED indicates frequently voted [p. 6, 38].
+  BADGE_TYPE_TOP_CASTED    = 4;
+}
+
+// ReputationProfile contains scoring statistics.
+message ReputationProfile {
+  // identity_id is the unique identity ULID.
+  string identity_id = 1 [(buf.validate.field).string.len = 26];
+  // aura_rating is the cumulative positive rating [p. 5].
+  int32 aura_rating = 2 [(buf.validate.field).int32 = {gte: 0, lte: 1000}];
+  // toxicity_rating is the cumulative negative rating [p. 5].
+  int32 toxicity_rating = 3 [(buf.validate.field).int32 = {gte: 0, lte: 1000}];
+  // active_streak_days tracks the active streak days.
+  int32 active_streak_days = 4;
+  // active_badges lists the active badges.
+  repeated BadgeType active_badges = 5;
+  // updated_at tracks when the record was last modified.
+  google.protobuf.Timestamp updated_at = 6;
+}
+
+// LeaderboardRow contains scoring entries.
+message LeaderboardRow {
+  // rank is the current leaderboard rank.
+  int32 rank = 1;
+  // identity_id is the unique identity ULID.
+  string identity_id = 2 [(buf.validate.field).string.len = 26];
+  // name is the display name of the member.
+  string name = 3;
+  // avatar_url is the profile image storage location.
+  string avatar_url = 4;
+  // aura_score is the positive rating index.
+  int32 aura_score = 5;
+  // toxicity_score is the negative rating index.
+  int32 toxicity_score = 6;
+}
+
+// GetReputationProfileRequest is the profile query payload.
+message GetReputationProfileRequest {
+  // identity_id is the unique identity ULID.
+  string identity_id = 1 [(buf.validate.field).string.len = 26];
+}
+
+// GetReputationProfileResponse returns reputation scores.
+message GetReputationProfileResponse {
+  // profile is the retrieved reputation scores.
+  ReputationProfile profile = 1;
+}
+
+// GetReputationLeaderboardRequest is the leaderboard query payload.
+message GetReputationLeaderboardRequest {
+  // campus_id is the target campus ID.
+  string campus_id = 1;
+  // ranking_metric determines the score field.
+  string ranking_metric = 2 [(buf.validate.field).string.pattern = "^(AURA|TOXICITY)$"];
+  // limit is the maximum entries to return.
+  int32 limit = 3 [(buf.validate.field).int32.lte = 100];
+  // offset is the query offset.
+  int32 offset = 4;
+}
+
+// GetReputationLeaderboardResponse returns leaderboard entries.
+message GetReputationLeaderboardResponse {
+  // rows is the list of leaderboard rows.
+  repeated LeaderboardRow rows = 1;
+}
+
+// EvaluateStreakBadgesRequest is the streak check payload.
+message EvaluateStreakBadgesRequest {
+  // identity_id is the unique identity ULID.
+  string identity_id = 1 [(buf.validate.field).string.len = 26];
+}
+
+// EvaluateStreakBadgesResponse returns streak results.
+message EvaluateStreakBadgesResponse {
+  // current_streak tracks the active streak days.
+  int32 current_streak = 1;
+  // new_badge_awarded is true if a new badge was awarded.
+  bool new_badge_awarded = 2;
+  // awarded_badge is the awarded badge.
+  BadgeType awarded_badge = 3;
+}

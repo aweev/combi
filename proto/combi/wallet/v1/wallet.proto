@@ -1,0 +1,116 @@
+syntax = "proto3";
+
+package combi.wallet.v1;
+
+option go_package = "github.com/combi/gen/go/combi/wallet/v1;walletv1";
+
+import "google/protobuf/timestamp.proto";
+import "buf/validate/validate.proto";
+
+// WalletService coordinates virtual coins, double-entry bookkeeping, and tournament escrows.
+service WalletService {
+  // GetBalance returns current available, pending, and locked balances.
+  rpc GetBalance (GetBalanceRequest) returns (GetBalanceResponse);
+  // BuyCoins swaps Mobile Money values into virtual Coin balances.
+  rpc BuyCoins (BuyCoinsRequest) returns (BuyCoinsResponse);
+  // HoldEscrow places funds in escrow for tournaments or unresolved creator splits [p. 27, 28].
+  rpc HoldEscrow (HoldEscrowRequest) returns (HoldEscrowResponse);
+  // ReleaseEscrow settles escrowed funds to final winner accounts.
+  rpc ReleaseEscrow (ReleaseEscrowRequest) returns (ReleaseEscrowResponse);
+}
+
+// CurrencyType determines the base asset formatting.
+enum CurrencyType {
+  // CURRENCY_TYPE_UNSPECIFIED is the default, unused fallback value.
+  CURRENCY_TYPE_UNSPECIFIED = 0;
+  // CURRENCY_TYPE_COINS represents virtual coins.
+  CURRENCY_TYPE_COINS       = 1;
+  // CURRENCY_TYPE_XAF represents CFA franc Central.
+  CURRENCY_TYPE_XAF         = 2;
+  // CURRENCY_TYPE_NGN represents Nigerian Naira.
+  CURRENCY_TYPE_NGN         = 3;
+}
+
+// Balance contains available, pending, and locked balances.
+message Balance {
+  // available_subunit is the subunit value of available funds.
+  int64 available_subunit = 1;
+  // pending_subunit is the subunit value of pending funds [p. 27].
+  int64 pending_subunit = 2;
+  // locked_subunit is the subunit value of locked funds [p. 28].
+  int64 locked_subunit = 3;
+  // currency classifies the ledger currency type.
+  CurrencyType currency = 4;
+  // estimated_release_at is the estimated timestamp when pending/locked balances clear [p. 27].
+  google.protobuf.Timestamp estimated_release_at = 5;
+}
+
+// GetBalanceRequest is the balance query payload.
+message GetBalanceRequest {
+  // identity_id is the unique identity ULID.
+  string identity_id = 1 [(buf.validate.field).string.len = 26];
+  // currency classifies the ledger currency type.
+  CurrencyType currency = 2;
+}
+
+// GetBalanceResponse returns the balances list.
+message GetBalanceResponse {
+  // balances is the list of wallet balances.
+  repeated Balance balances = 1;
+}
+
+// BuyCoinsRequest is the load payload.
+message BuyCoinsRequest {
+  // identity_id is the unique identity ULID.
+  string identity_id = 1 [(buf.validate.field).string.len = 26];
+  // payment_id is the unique payment ULID.
+  string payment_id = 2 [(buf.validate.field).string.len = 26];
+  // coins_to_credit is the subunit value of Coins to load.
+  int64 coins_to_credit = 3 [(buf.validate.field).int64.gt = 0];
+  // idempotency_key prevents duplicate credits on retry.
+  string idempotency_key = 4 [(buf.validate.field).string.uuid = true];
+}
+
+// BuyCoinsResponse returns current available balance.
+message BuyCoinsResponse {
+  // updated_available_coins is the updated coin balance.
+  int64 updated_available_coins = 1;
+}
+
+// HoldEscrowRequest locks-in transaction funds [p. 27, 28].
+message HoldEscrowRequest {
+  // wallet_id is the unique wallet ID.
+  string wallet_id = 1 [(buf.validate.field).string.len = 26];
+  // reference_id is the external operator ID [p. 28].
+  string reference_id = 2 [(buf.validate.field).string.min_len = 1];
+  // amount_subunit is the subunit value to lock.
+  int64 amount_subunit = 3 [(buf.validate.field).int64.gt = 0];
+  // currency classifies the ledger currency type.
+  CurrencyType currency = 4;
+  // idempotency_key prevents duplicate locks on retry.
+  string idempotency_key = 5 [(buf.validate.field).string.uuid = true];
+}
+
+// HoldEscrowResponse returns escrow status.
+message HoldEscrowResponse {
+  // escrow_id is the unique escrow ULID.
+  string escrow_id = 1 [(buf.validate.field).string.len = 26];
+  // success flags if lock completed.
+  bool success = 2;
+}
+
+// ReleaseEscrowRequest distributes transaction funds [p. 28].
+message ReleaseEscrowRequest {
+  // escrow_id is the unique escrow ULID.
+  string escrow_id = 1 [(buf.validate.field).string.len = 26];
+  // destination_subunit_splits is the destination wallet splits [p. 28].
+  map<string, int64> destination_subunit_splits = 2;
+  // idempotency_key prevents duplicate releases on retry.
+  string idempotency_key = 3 [(buf.validate.field).string.uuid = true];
+}
+
+// ReleaseEscrowResponse returns status.
+message ReleaseEscrowResponse {
+  // success flags if release completed.
+  bool success = 1;
+}

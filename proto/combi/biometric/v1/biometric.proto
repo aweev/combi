@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package combi.biometric.v1;
+
+option go_package = "github.com/combi/gen/go/combi/biometric/v1;biometricv1";
+
+import "google/protobuf/timestamp.proto";
+import "buf/validate/validate.proto";
+
+// BiometricService coordinates facial recognition matches and liveness verifications during critical identity resolution.
+service BiometricService {
+  // VerifyLiveness evaluates a 3D depth or liveness video packet to ensure a real human user is present [p. 30].
+  rpc VerifyLiveness (VerifyLivenessRequest) returns (VerifyLivenessResponse);
+  // MatchFaceTemplate matches a live selfie photo template against previously verified government ID credentials [p. 30].
+  rpc MatchFaceTemplate (MatchFaceTemplateRequest) returns (MatchFaceTemplateResponse);
+}
+
+// VerifyLivenessRequest is the verification payload.
+message VerifyLivenessRequest {
+  // identity_id is the unique identity ULID.
+  string identity_id = 1 [(buf.validate.field).string.len = 26];
+  // media_storage_uri is the secure location of the media file [p. 9].
+  string media_storage_uri = 2 [(buf.validate.field).string.min_len = 5];
+  // device_hash is the target hardware fingerprint.
+  string device_hash = 3 [(buf.validate.field).string.min_len = 16];
+}
+
+// VerifyLivenessResponse returns liveness status.
+message VerifyLivenessResponse {
+  // is_live is true if user is verified live.
+  bool is_live = 1;
+  // confidence_score is the match confidence score (0.0 to 1.0).
+  double confidence_score = 2;
+  // challenge_id is the active challenge ID.
+  string challenge_id = 3;
+}
+
+// MatchFaceTemplateRequest is the face template matching payload.
+message MatchFaceTemplateRequest {
+  // identity_id is the unique identity ULID.
+  string identity_id = 1 [(buf.validate.field).string.len = 26];
+  // live_selfie_storage_uri is the secure location of the live selfie [p. 9].
+  string live_selfie_storage_uri = 2 [(buf.validate.field).string.min_len = 5];
+  // reference_document_storage_uri is the secure location of the validated document [p. 17, 27].
+  string reference_document_storage_uri = 3 [(buf.validate.field).string.min_len = 5];
+}
+
+// MatchFaceTemplateResponse returns template matching results.
+message MatchFaceTemplateResponse {
+  // is_match is true if templates match.
+  bool is_match = 1;
+  // match_score is the template matching probability (0.0 to 1.0).
+  double match_score = 2;
+  // evaluated_at is the timestamp when template was matched.
+  google.protobuf.Timestamp evaluated_at = 3;
+}

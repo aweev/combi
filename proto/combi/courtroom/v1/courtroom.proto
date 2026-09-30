@@ -1,0 +1,151 @@
+syntax = "proto3";
+
+package combi.courtroom.v1;
+
+option go_package = "github.com/combi/gen/go/combi/courtroom/v1;courtroomv1";
+
+import "buf/validate/validate.proto";
+
+// CourtroomService orchestrates standard/sponsored decks, active sessions, and voting.
+service CourtroomService {
+  // ListDecks retrieves category-sorted decks of voting prompts [p. 7, 37].
+  rpc ListDecks (ListDecksRequest) returns (ListDecksResponse);
+  // GetCourtroomSession verifies member criteria and initializes a courtroom session for a squad [p. 22].
+  rpc GetCourtroomSession (GetCourtroomSessionRequest) returns (GetCourtroomSessionResponse);
+  // CastVote submits a standard courtroom vote (idempotent, supports abstention) [p. 22].
+  rpc CastVote (CastVoteRequest) returns (CastVoteResponse);
+}
+
+// DeckCategory classifies the category of the deck.
+enum DeckCategory {
+  // DECK_CATEGORY_UNSPECIFIED is the default, unused fallback value.
+  DECK_CATEGORY_UNSPECIFIED = 0;
+  // DECK_CATEGORY_CHAOS represents the Chaos category [p. 7].
+  DECK_CATEGORY_CHAOS       = 1;
+  // DECK_CATEGORY_LOVE_LIES represents the Love & Lies category [p. 7].
+  DECK_CATEGORY_LOVE_LIES   = 2;
+  // DECK_CATEGORY_MONEY represents the Who's the Broker? category [p. 7].
+  DECK_CATEGORY_MONEY       = 3;
+  // DECK_CATEGORY_CAMPUS represents the Campus Confessions category [p. 7].
+  DECK_CATEGORY_CAMPUS      = 4;
+  // DECK_CATEGORY_CREATOR represents the Community Casts category [p. 7].
+  DECK_CATEGORY_CREATOR     = 5;
+  // DECK_CATEGORY_SPONSORED represents sponsored brand decks [p. 7].
+  DECK_CATEGORY_SPONSORED   = 6;
+}
+
+// SponsoredMetadata contains sponsored brand metadata [p. 7].
+message SponsoredMetadata {
+  // brand_name is the name of the brand.
+  string brand_name = 1;
+  // banner_image_url is the brand banner image URL.
+  string banner_image_url = 2;
+  // sponsor_label is the sponsor display text.
+  string sponsor_label = 3;
+}
+
+// Deck represents a voting deck.
+message Deck {
+  // id is the unique deck ULID.
+  string id = 1 [(buf.validate.field).string.len = 26];
+  // title is the title of the deck.
+  string title = 2 [(buf.validate.field).string.min_len = 3];
+  // description is additional description of the deck.
+  string description = 3;
+  // category classifies the deck category.
+  DeckCategory category = 4;
+  // total_plays is the total plays of the deck.
+  int32 total_plays = 5;
+  // is_premium_only indicates if the deck is premium-only.
+  bool is_premium_only = 6;
+  // language_code is the ISO language filter [p. 10].
+  string language_code = 7;
+  // sponsor_data contains sponsored brand metadata.
+  SponsoredMetadata sponsor_data = 8;
+}
+
+// Question represents a standard courtroom question.
+message Question {
+  // id is the unique question ULID.
+  string id = 1 [(buf.validate.field).string.len = 26];
+  // prompt_text is the prompt text of the question.
+  string prompt_text = 2 [(buf.validate.field).string.min_len = 3];
+}
+
+// MemberFace contains member metadata.
+message MemberFace {
+  // identity_id is the unique identity ULID.
+  string identity_id = 1 [(buf.validate.field).string.len = 26];
+  // name is the display name of the member.
+  string name = 2;
+  // avatar_url is the profile image storage location.
+  string avatar_url = 3;
+}
+
+// SensoryFeedback contains feedback configuration.
+message SensoryFeedback {
+  // audio_asset_url is the audio asset URL [p. 22].
+  string audio_asset_url = 1;
+  // haptic_vibe_pattern is the haptic vibration pattern [p. 22].
+  string haptic_vibe_pattern = 2;
+}
+
+// ListDecksRequest is the list query payload.
+message ListDecksRequest {
+  // category_filter classifies the deck category.
+  DeckCategory category_filter = 1;
+  // locale is the target language code.
+  string locale = 2 [(buf.validate.field).string.min_len = 2];
+  // limit is the maximum decks to return.
+  int32 limit = 3 [(buf.validate.field).int32.lte = 100];
+}
+
+// ListDecksResponse returns the list of decks.
+message ListDecksResponse {
+  // decks is the list of active decks.
+  repeated Deck decks = 1;
+}
+
+// GetCourtroomSessionRequest is the session initialization payload.
+message GetCourtroomSessionRequest {
+  // squad_id is the target squad ULID.
+  string squad_id = 1 [(buf.validate.field).string.len = 26];
+  // deck_id is the unique deck ULID.
+  string deck_id = 2 [(buf.validate.field).string.len = 26];
+}
+
+// GetCourtroomSessionResponse returns initialized courtroom session.
+message GetCourtroomSessionResponse {
+  // session_id is the unique session ULID.
+  string session_id = 1 [(buf.validate.field).string.len = 26];
+  // questions is the list of active questions.
+  repeated Question questions = 2;
+  // candidates is the list of active candidates.
+  repeated MemberFace candidates = 3;
+  // insufficient_members indicates if squad size is too small [p. 6, 22].
+  bool insufficient_members = 4;
+  // feedback_config contains feedback configuration.
+  SensoryFeedback feedback_config = 5;
+}
+
+// CastVoteRequest is the vote submission payload.
+message CastVoteRequest {
+  // session_id is the unique session ULID.
+  string session_id = 1 [(buf.validate.field).string.len = 26];
+  // question_id is the unique question ULID.
+  string question_id = 2 [(buf.validate.field).string.len = 26];
+  // voter_identity_id is the unique identity ULID of the voter.
+  string voter_identity_id = 3 [(buf.validate.field).string.len = 26];
+  // target_identity_id is the unique identity ULID of the target.
+  string target_identity_id = 4;
+  // idempotency_key prevents duplicate voting on retry.
+  string idempotency_key = 5 [(buf.validate.field).string.uuid = true];
+}
+
+// CastVoteResponse returns vote status.
+message CastVoteResponse {
+  // success flags if vote completed.
+  bool success = 1;
+  // session_complete is true if session completed.
+  bool session_complete = 2;
+}

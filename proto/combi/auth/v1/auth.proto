@@ -1,0 +1,123 @@
+syntax = "proto3";
+
+package combi.auth.v1;
+
+option go_package = "github.com/combi/gen/go/combi/auth/v1;authv1";
+
+import "buf/validate/validate.proto";
+
+// AuthService handles verification codes (OTP), token exchanges, and session validations.
+service AuthService {
+  // SendOTP dispatches a passwordless OTP via WhatsApp first, with SMS failover if WhatsApp is unavailable.
+  rpc SendOTP (SendOTPRequest) returns (SendOTPResponse);
+  
+  // VerifyOTP validates OTP challenge and exchanges it for a cryptographically verified JWT pair.
+  rpc VerifyOTP (VerifyOTPRequest) returns (VerifyOTPResponse);
+  
+  // RefreshSession exchange standard Refresh Token for a rotated Access/Refresh token pair.
+  rpc RefreshSession (RefreshSessionRequest) returns (RefreshSessionResponse);
+  
+  // RevokeSession revokes active session markers immediately (on logout or device untrusting).
+  rpc RevokeSession (RevokeSessionRequest) returns (RevokeSessionResponse);
+}
+
+// OtpChannel determines the primary pathway used to deliver verification codes.
+enum OtpChannel {
+  // OTP_CHANNEL_UNSPECIFIED is the default, unused fallback value.
+  OTP_CHANNEL_UNSPECIFIED = 0;
+  // OTP_CHANNEL_WHATSAPP indicates delivery via WhatsApp Business API templates.
+  OTP_CHANNEL_WHATSAPP    = 1;
+  // OTP_CHANNEL_SMS indicates delivery via telecom carrier SMS routing.
+  OTP_CHANNEL_SMS         = 2;
+}
+
+// TokenPair models active session security credentials returned upon verification.
+message TokenPair {
+  // access_token is the short-lived JWT access credential.
+  string access_token = 1;
+  // refresh_token is the long-lived session rotation credential.
+  string refresh_token = 2;
+  
+  // offline_token is a specialized client-side token used for offline vote signatures [p. 4, 23].
+  string offline_token = 3;
+  
+  // expires_in is the access token validity duration in seconds.
+  int64 expires_in = 4;
+}
+
+// SendOTPRequest is the payload used to dispatch a verification challenge.
+message SendOTPRequest {
+  // phone is the verified carrier phone number.
+  string phone = 1 [(buf.validate.field).string.pattern = "^[+][1-9][0-9]{1,14}$"];
+  
+  // preferred_channel indicates the delivery pathway selected.
+  OtpChannel preferred_channel = 2;
+  
+  // device_hash is the unique hardware fingerprint to detect abuse [p. 4].
+  string device_hash = 3 [(buf.validate.field).string.min_len = 16];
+  
+  // locale is the dynamic user language used to localize dispatch messages [p. 10].
+  string locale = 4 [(buf.validate.field).string.min_len = 2];
+}
+
+// SendOTPResponse returns details of the initiated challenge.
+message SendOTPResponse {
+  // challenge_id is the unique challenge tracker ID.
+  string challenge_id = 1;
+  
+  // rate_limit_remaining_seconds tells the client when to allow retry/resend options.
+  int32 rate_limit_remaining_seconds = 2;
+}
+
+// VerifyOTPRequest is the verification payload.
+message VerifyOTPRequest {
+  // challenge_id is the unique challenge tracker ID.
+  string challenge_id = 1 [(buf.validate.field).string.min_len = 1];
+  // code is the 6-digit numeric verification code entered by the user.
+  string code = 2 [(buf.validate.field).string.len = 6];
+  // device_hash is the target hardware fingerprint.
+  string device_hash = 3 [(buf.validate.field).string.min_len = 16];
+}
+
+// VerifyOTPResponse returns the verified session tokens.
+message VerifyOTPResponse {
+  // session_tokens is the verified session token payload.
+  TokenPair session_tokens = 1;
+  
+  // is_new_user is true if the phone number is newly registered.
+  bool is_new_user = 2;
+  
+  // recycled_sim_suspect flags if identity SIM reuse is suspected [p. 21].
+  bool recycled_sim_suspect = 3;
+  
+  // identity_id is the verified identity ULID.
+  string identity_id = 4 [(buf.validate.field).string.len = 26];
+}
+
+// RefreshSessionRequest rotates session credentials.
+message RefreshSessionRequest {
+  // refresh_token is the active long-lived session rotation credential.
+  string refresh_token = 1 [(buf.validate.field).string.min_len = 1];
+  // device_hash is the target hardware fingerprint.
+  string device_hash = 2 [(buf.validate.field).string.min_len = 16];
+}
+
+// RefreshSessionResponse returns the rotated session tokens.
+message RefreshSessionResponse {
+  // session_tokens is the rotated token pair.
+  TokenPair session_tokens = 1;
+}
+
+// RevokeSessionRequest revokes session access immediately.
+message RevokeSessionRequest {
+  // refresh_token is the active long-lived session credential.
+  string refresh_token = 1 [(buf.validate.field).string.min_len = 1];
+  // device_hash is the target hardware fingerprint.
+  string device_hash = 2 [(buf.validate.field).string.min_len = 16];
+}
+
+// RevokeSessionResponse returns the execution status.
+message RevokeSessionResponse {
+  // success flags if revocation completed.
+  bool success = 1;
+}

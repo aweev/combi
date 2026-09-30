@@ -1,0 +1,89 @@
+syntax = "proto3";
+
+package combi.eventbus.v1;
+
+option go_package = "github.com/combi/gen/go/combi/eventbus/v1;eventbusv1";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/any.proto";
+import "buf/validate/validate.proto";
+
+// EventEnvelope is the immutable wire wrapper for every signal processed by NATS JetStream.
+message EventEnvelope {
+  // id is the unique event identifier (canonical ULID).
+  string id = 1 [(buf.validate.field).string.len = 26];
+  // topic is the dot-separated routing topic (e.g. "identity.v1.created") [p. 10, 22].
+  string topic = 2 [(buf.validate.field).string.min_len = 5];
+  // source is the origin microservice that emitted the event.
+  string source = 3 [(buf.validate.field).string.min_len = 2];
+  // tenant_id is the multi-tenant isolation key.
+  string tenant_id = 4 [(buf.validate.field).string.min_len = 1];
+  // correlation_id links async side-effects to the originating request.
+  string correlation_id = 5 [(buf.validate.field).string.min_len = 1];
+  // trace_id is the OpenTelemetry trace propagation context.
+  string trace_id = 6;
+  // version is the schema semantic version.
+  string version = 7 [(buf.validate.field).string.min_len = 1];
+  // occurred_at tracks when the event occurred in the domain.
+  google.protobuf.Timestamp occurred_at = 8;
+  // published_at tracks when the event was placed on the bus.
+  google.protobuf.Timestamp published_at = 9;
+  // payload is the polymorphic payload.
+  google.protobuf.Any payload = 10;
+}
+
+// IdentityCreatedPayload is emitted when a fresh user registers [p. 10, 20].
+message IdentityCreatedPayload {
+  // identity_id is the unique identity ULID.
+  string identity_id = 1 [(buf.validate.field).string.len = 26];
+  // phone is the verified phone number.
+  string phone = 2 [(buf.validate.field).string.pattern = "^[+][1-9][0-9]{1,14}$"];
+  // country is the ISO country code of the user.
+  string country = 3 [(buf.validate.field).string.len = 2];
+  // created_at is when the record was registered.
+  google.protobuf.Timestamp created_at = 4;
+}
+
+// VerdictCastPayload is emitted when a courtroom vote is acknowledged [p. 22].
+message VerdictCastPayload {
+  // vote_id is the unique vote ULID.
+  string vote_id = 1 [(buf.validate.field).string.len = 26];
+  // deck_id is the unique deck ULID.
+  string deck_id = 2 [(buf.validate.field).string.len = 26];
+  // question_id is the unique question ULID.
+  string question_id = 3 [(buf.validate.field).string.len = 26];
+  // squad_id is the target squad ULID.
+  string squad_id = 4 [(buf.validate.field).string.len = 26];
+  // target_identity_id is the unique identity ULID of the target.
+  string target_identity_id = 5;
+  // cast_at is when the vote was acknowledged.
+  google.protobuf.Timestamp cast_at = 6;
+}
+
+// PaymentCompletedPayload is emitted on a successful payment [p. 24].
+message PaymentCompletedPayload {
+  // payment_id is the unique payment ULID.
+  string payment_id = 1 [(buf.validate.field).string.len = 26];
+  // amount_subunit is the subunit value of payment.
+  int64 amount_subunit = 2 [(buf.validate.field).int64.gt = 0];
+  // currency is the system currency of the ledger record.
+  string currency = 3 [(buf.validate.field).string.len = 3];
+  // recipient_id is the target identity ULID.
+  string recipient_id = 4 [(buf.validate.field).string.len = 26];
+  // provider_reference is the external operator transaction ID.
+  string provider_reference = 5;
+  // completed_at is when checkout completed.
+  google.protobuf.Timestamp completed_at = 6;
+}
+
+// NotificationOpenedPayload is emitted when push notifications are clicked [p. 25].
+message NotificationOpenedPayload {
+  // notification_id is the unique notification ULID.
+  string notification_id = 1 [(buf.validate.field).string.len = 26];
+  // identity_id is the unique identity ULID.
+  string identity_id = 2 [(buf.validate.field).string.len = 26];
+  // topic determines message class [p. 39].
+  string topic = 3;
+  // opened_at is when the notification was opened.
+  google.protobuf.Timestamp opened_at = 4;
+}

@@ -1,0 +1,147 @@
+syntax = "proto3";
+
+package combi.cortex.v1;
+
+option go_package = "github.com/combi/gen/go/combi/cortex/v1;cortexv1";
+
+import "google/protobuf/timestamp.proto";
+import "buf/validate/validate.proto";
+
+// CortexService governs personality archetype classification, AI provocations, and vector memory.
+service CortexService {
+  // AnalyzePersona evaluates a user's cumulative voting history to classify them [p. 18, 39].
+  rpc AnalyzePersona (AnalyzePersonaRequest) returns (AnalyzePersonaResponse);
+
+  // GenerateProvocation queries Qdrant vector memory to generate prompts [p. 25, 40].
+  rpc GenerateProvocation (GenerateProvocationRequest) returns (GenerateProvocationResponse);
+
+  // DisputePersona logs a user dispute when they disagree with their assigned personality archetype [p. 19].
+  rpc DisputePersona (DisputePersonaRequest) returns (DisputePersonaResponse);
+
+  // GetCortexConfig retrieves system prompt parameters [p. 8].
+  rpc GetCortexConfig (GetCortexConfigRequest) returns (GetCortexConfigResponse);
+
+  // UpdateCortexConfig adjusts system prompt variables in real-time [p. 8, 42].
+  rpc UpdateCortexConfig (UpdateCortexConfigRequest) returns (UpdateCortexConfigResponse);
+}
+
+// ArchetypeType determines the user personality archetype class.
+enum ArchetypeType {
+  // ARCHETYPE_TYPE_UNSPECIFIED is the default, unused fallback value.
+  ARCHETYPE_TYPE_UNSPECIFIED      = 0;
+  // ARCHETYPE_TYPE_STRATEGIC_VILLAIN indicates strategic villain archetype [p. 18].
+  ARCHETYPE_TYPE_STRATEGIC_VILLAIN = 1;
+  // ARCHETYPE_TYPE_BELOVED_MENACE indicates beloved menace archetype [p. 18].
+  ARCHETYPE_TYPE_BELOVED_MENACE   = 2;
+  // ARCHETYPE_TYPE_SILENT_ARCHITECT indicates silent architect archetype [p. 18].
+  ARCHETYPE_TYPE_SILENT_ARCHITECT = 3;
+  // ARCHETYPE_TYPE_CHAOS_AGENT indicates chaos agent archetype [p. 18].
+  ARCHETYPE_TYPE_CHAOS_AGENT      = 4;
+  // ARCHETYPE_TYPE_LOYAL_WEAPON indicates loyal weapon archetype [p. 18].
+  ARCHETYPE_TYPE_LOYAL_WEAPON     = 5;
+  // ARCHETYPE_TYPE_RELUCTANT_ICON indicates reluctant icon archetype [p. 18].
+  ARCHETYPE_TYPE_RELUCTANT_ICON   = 6;
+  // ARCHETYPE_TYPE_OPERATOR indicates operator archetype [p. 18].
+  ARCHETYPE_TYPE_OPERATOR         = 7;
+  // ARCHETYPE_TYPE_WILDCARD indicates wildcard archetype [p. 18].
+  ARCHETYPE_TYPE_WILDCARD         = 8;
+  // ARCHETYPE_TYPE_GHOST indicates ghost archetype [p. 19].
+  ARCHETYPE_TYPE_GHOST            = 9;
+}
+
+// Persona contains user archetype statistics.
+message Persona {
+  // identity_id is the unique identity ULID.
+  string identity_id = 1 [(buf.validate.field).string.len = 26];
+  // archetype is the current personality archetype class.
+  ArchetypeType archetype = 2;
+  // description is additional descriptive text.
+  string description = 3 [(buf.validate.field).string.min_len = 5];
+  // aura_rating is the cumulative positive rating.
+  int32 aura_rating = 4 [(buf.validate.field).int32 = {gte: 0, lte: 1000}];
+  // toxicity_rating is the cumulative negative rating [p. 18].
+  int32 toxicity_rating = 5 [(buf.validate.field).int32 = {gte: 0, lte: 1000}];
+  // calculated_at is when the stats were calculated.
+  google.protobuf.Timestamp calculated_at = 6;
+}
+
+// CortexConfig stores system configuration variables.
+message CortexConfig {
+  // aggression_level controlling how provocative Hermes is (1-10) [p. 8, 40].
+  int32 aggression_level = 1 [(buf.validate.field).int32 = {gte: 1, lte: 10}];
+  // humor_level controlling the tone of AI generations (1-10) [p. 8].
+  int32 humor_level = 2 [(buf.validate.field).int32 = {gte: 1, lte: 10}];
+  // base_system_prompt is the system prompt text [p. 8].
+  string base_system_prompt = 3 [(buf.validate.field).string.min_len = 10];
+  // temperature controls randomness of AI generations [p. 8].
+  double temperature = 4 [(buf.validate.field).double = {gte: 0.0, lte: 2.0}];
+}
+
+// AnalyzePersonaRequest is the analysis payload.
+message AnalyzePersonaRequest {
+  // identity_id is the unique identity ULID.
+  string identity_id = 1 [(buf.validate.field).string.len = 26];
+}
+
+// AnalyzePersonaResponse returns analyzed persona.
+message AnalyzePersonaResponse {
+  // persona is the analyzed persona stats.
+  Persona persona = 1;
+}
+
+// GenerateProvocationRequest is the provocation payload.
+message GenerateProvocationRequest {
+  // squad_id is the target squad ULID.
+  string squad_id = 1 [(buf.validate.field).string.len = 26];
+  // target_identity_id is the target user for personalized provocation.
+  string target_identity_id = 2 [(buf.validate.field).string.len = 26];
+  // locale is the target language code [p. 10].
+  string locale = 3 [(buf.validate.field).string.min_len = 2];
+}
+
+// GenerateProvocationResponse returns generated copy.
+message GenerateProvocationResponse {
+  // generated_copy is the generated copy text.
+  string generated_copy = 1 [(buf.validate.field).string.min_len = 5];
+  // matched_identity_ids is the list of matching targets.
+  repeated string matched_identity_ids = 2;
+}
+
+// DisputePersonaRequest is the dispute payload.
+message DisputePersonaRequest {
+  // identity_id is the unique identity ULID.
+  string identity_id = 1 [(buf.validate.field).string.len = 26];
+  // disputed_archetype is the disputed personality archetype.
+  ArchetypeType disputed_archetype = 2;
+  // user_reason justifies the dispute.
+  string user_reason = 3;
+}
+
+// DisputePersonaResponse returns dispute status.
+message DisputePersonaResponse {
+  // success flags if dispute completed.
+  bool success = 1;
+}
+
+// GetCortexConfigRequest is the configuration query payload.
+message GetCortexConfigRequest {}
+
+// GetCortexConfigResponse returns system configuration.
+message GetCortexConfigResponse {
+  // config is the system configuration.
+  CortexConfig config = 1;
+}
+
+// UpdateCortexConfigRequest adjusts system configuration.
+message UpdateCortexConfigRequest {
+  // config is the system configuration to adjust.
+  CortexConfig config = 1;
+}
+
+// UpdateCortexConfigResponse returns system configuration status.
+message UpdateCortexConfigResponse {
+  // config is the updated system configuration.
+  CortexConfig config = 1;
+  // success flags if configuration completed.
+  bool success = 2;
+}

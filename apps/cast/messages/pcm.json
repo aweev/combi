@@ -1,0 +1,86 @@
+{
+    "Metadata": {
+    "title": "CAST | Powered by Combi",
+    "description": "Everything dey cast. Nothing hide."
+  },
+  "Common": {
+    "viewAll": "SEE ALL",
+    "shareToStatus": "To Status",
+    "castAgain": "Cast Another"
+  },
+  "Navigation": {
+    "home": "Base",
+    "squads": "Goons",
+    "court": "Court",
+    "arena": "Arena",
+    "vault": "Vault"
+  },
+  "Execution": {
+    "decrypting": "We dey decode...",
+    "verdictSealed": "Verdict Don Seal",
+    "yourSquadRuled": "YOUR SQUAD DON REASON YOU.",
+    "truthComesOut": "Nothing hide under the sun.",
+    "targetAcquired": "Target Don Lock",
+    "finalTally": "Final Score",
+    "mostLikelyTo": "Who mostly like to",
+    "shareYourVerdict": "Cast Am For Outside",
+    "swipeStyles": "Swipe styles",
+    "iGotCasted": "DEM DON CAST ME",
+    "asThePerson": "As the person",
+    "mySquadVotedMe": "My squad say I be",
+    "theyAreNotWrong": "Dem no lie sha.",
+    "squadConsensus": "Squad Conclusion",
+    "theJury": "The Jury",
+    "identityProtected": "Identity Hide",
+    "agreed": "Gree",
+    "denied": "No Gree",
+    "burnBook": "Wetin Dem Yarn",
+    "entry": "Entry",
+    "shareTitle": "Dem don cast me",
+    "shareText": "My squad don cast me for CAST. Enter here make you see wetin dem talk.",
+    "copiedSuccess": "Link don copy!"
+  },
+  "Results": {
+    "pageTitle": "Squad Result",
+    "sessionComplete": "Game Don Cast",
+    "theTruth": "The Truth",
+    "isOut": "don open.",
+    "players": "{count} Players",
+    "question": "Question {num}",
+    "votes": "Votes",
+    "playAgain": "Play Again",
+    "shareDeck": "Share Link",
+    "shareDeckText": "We just play {deckName}. The truth don open. Play am with your squad.",
+    "copiedSuccess": "Deck link don copy!"
+  },
+  "Decks": {
+    "pageTitle": "Decks",
+    "chooseYour": "Pick Your",
+    "weapon": "bullet.",
+    "truthsCastToday": "{count} truths don cast today",
+    "courtroomRules": "The Courtroom",
+    "courtroomTooltipDesc": "Nobody go know say na you vote. Your squad go just see the result, but dem no go see your face.",
+    "catAll": "All",
+    "catChaos": "Vawulence",
+    "catLoveLies": "Love & Lies",
+    "catCampus": "Campus",
+    "catMoney": "Money",
+    "catCreator": "Creator",
+    "catSponsored": "Sponsored",
+    "innerCourtOnly": "Inner Court Only",
+    "presentedBy": "Na {brand} bring am",
+    "castTimes": "Dem don cast am {count} times.",
+    "playThisCast": "Play this Cast",
+    "yourBurnBook": "Your Burn Book:",
+    "verdictsPending": "{count} verdicts dey wait you."
+  },
+  "Courtroom": {
+    "pageTitle": "The Courtroom",
+    "inSession": "Court don open.",
+    "anonymousWarning": "Nobody go know say na you vote. But dem go see result.",
+    "tapToCast": "Tap face to cast your vote.",
+    "skip": "Pass",
+    "finalQuestion": "Last question. No cast nonsense.",
+    "progress": "{current} of {total} questions"
+  }
+}

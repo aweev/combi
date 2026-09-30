@@ -1,0 +1,138 @@
+syntax = "proto3";
+
+package combi.notifications.v1;
+
+option go_package = "github.com/combi/gen/go/combi/notifications/v1;notificationsv1";
+
+import "google/protobuf/timestamp.proto";
+import "buf/validate/validate.proto";
+
+// NotificationService coordinates multi-channel delivery (FCM, APNs, SMS, WhatsApp) [p. 10].
+service NotificationService {
+  // SendPush dispatches a targeted push notification using templates [p. 10].
+  rpc SendPush (SendPushRequest) returns (SendPushResponse);
+  // SendSms directly pushes an SMS message [p. 4, 10, 20].
+  rpc SendSms (SendSmsRequest) returns (SendSmsResponse);
+  // UpdatePreferences mutates notification settings per user [p. 25, 39].
+  rpc UpdatePreferences (UpdatePreferencesRequest) returns (UpdatePreferencesResponse);
+  // TrackNotificationEvent tracks analytical metrics of push events [p. 25].
+  rpc TrackNotificationEvent (TrackNotificationEventRequest) returns (TrackNotificationEventResponse);
+}
+
+// NotificationChannel classifies delivery pathways.
+enum NotificationChannel {
+  // NOTIFICATION_CHANNEL_UNSPECIFIED is the default, unused fallback value.
+  NOTIFICATION_CHANNEL_UNSPECIFIED = 0;
+  // NOTIFICATION_CHANNEL_FCM represents Google Firebase.
+  NOTIFICATION_CHANNEL_FCM         = 1;
+  // NOTIFICATION_CHANNEL_APNS represents Apple Push Notification service.
+  NOTIFICATION_CHANNEL_APNS        = 2;
+  // NOTIFICATION_CHANNEL_SMS represents SMS gateways.
+  NOTIFICATION_CHANNEL_SMS         = 3;
+  // NOTIFICATION_CHANNEL_WHATSAPP represents WhatsApp Business.
+  NOTIFICATION_CHANNEL_WHATSAPP    = 4;
+}
+
+// NotificationTopic matches message classes.
+enum NotificationTopic {
+  // NOTIFICATION_TOPIC_UNSPECIFIED is the default, unused fallback value.
+  NOTIFICATION_TOPIC_UNSPECIFIED   = 0;
+  // NOTIFICATION_TOPIC_DIRECT_VOTE indicates "You have been Cast" [p. 10].
+  NOTIFICATION_TOPIC_DIRECT_VOTE   = 1;
+  // NOTIFICATION_TOPIC_SQUAD_WAKEUP indicates Hermes AI provocations [p. 10, 25].
+  NOTIFICATION_TOPIC_SQUAD_WAKEUP  = 2;
+  // NOTIFICATION_TOPIC_TOURNAMENTS indicates Arena updates [p. 11].
+  NOTIFICATION_TOPIC_TOURNAMENTS   = 3;
+  // NOTIFICATION_TOPIC_CONVERSIONS indicates billing and coin updates [p. 11].
+  NOTIFICATION_TOPIC_CONVERSIONS   = 4;
+  // NOTIFICATION_TOPIC_SOCIAL indicates leaderboard updates [p. 11].
+  NOTIFICATION_TOPIC_SOCIAL        = 5;
+}
+
+// NotificationPreferences defines user-controlled settings.
+message NotificationPreferences {
+  // identity_id is the unique identity ULID.
+  string identity_id = 1 [(buf.validate.field).string.len = 26];
+  // allow_direct_votes allows direct vote updates.
+  bool allow_direct_votes = 2;
+  // allow_squad_wakeups allows squad wakeup triggers.
+  bool allow_squad_wakeups = 3;
+  // allow_tournaments allows tournament alerts.
+  bool allow_tournaments = 4;
+  // allow_conversions allows transaction updates.
+  bool allow_conversions = 5;
+  // allow_social allows social updates.
+  bool allow_social = 6;
+}
+
+// SendPushRequest is the push payload.
+message SendPushRequest {
+  // identity_id is the unique identity ULID.
+  string identity_id = 1 [(buf.validate.field).string.len = 26];
+  // topic determines routing category [p. 10].
+  NotificationTopic topic = 2;
+  // title is the push notification title [p. 10].
+  string title = 3 [(buf.validate.field).string.min_len = 3];
+  // body is the push notification body text [p. 10].
+  string body = 4 [(buf.validate.field).string.min_len = 5];
+  // data_payload is additional deep-link routing data [p. 10, 21].
+  map<string, string> data_payload = 5;
+}
+
+// SendPushResponse returns delivery state.
+message SendPushResponse {
+  // notification_id is the unique ULID identifying this push event.
+  string notification_id = 1 [(buf.validate.field).string.len = 26];
+  // sent flags if dispatch was completed.
+  bool sent = 2;
+}
+
+// SendSmsRequest is the SMS payload.
+message SendSmsRequest {
+  // phone is the verified phone number.
+  string phone = 1 [(buf.validate.field).string.pattern = "^\\+[1-9]\\d{1,14}$"];
+  // body is the message body text [p. 10].
+  string body = 2 [(buf.validate.field).string.min_len = 5];
+  // tracking_id is the custom tracking transaction ID.
+  string tracking_id = 3;
+}
+
+// SendSmsResponse returns delivery state.
+message SendSmsResponse {
+  // success flags if carrier dispatch completed.
+  bool success = 1;
+  // provider_reference is the carrier transaction ID.
+  string provider_reference = 2;
+}
+
+// UpdatePreferencesRequest updates settings per user.
+message UpdatePreferencesRequest {
+  // identity_id is the unique identity ULID.
+  string identity_id = 1 [(buf.validate.field).string.len = 26];
+  // preferences are the modified settings.
+  NotificationPreferences preferences = 2;
+}
+
+// UpdatePreferencesResponse returns status.
+message UpdatePreferencesResponse {
+  // success flags if settings updated.
+  bool success = 1;
+}
+
+// TrackNotificationEventRequest records user engagement.
+message TrackNotificationEventRequest {
+  // notification_id is the unique notification ULID.
+  string notification_id = 1 [(buf.validate.field).string.len = 26];
+  // identity_id is the unique identity ULID.
+  string identity_id = 2 [(buf.validate.field).string.len = 26];
+  // action tracks state changes: "sent" | "failed" | "opened" [p. 25].
+  string action = 3 [(buf.validate.field).string.pattern = "^(sent|failed|opened)$"];
+  // occurred_at is when the state change occurred.
+  google.protobuf.Timestamp occurred_at = 4;
+}
+
+// TrackNotificationEventResponse returns status.
+message TrackNotificationEventResponse {
+  // success flags if engagement was saved.
+  bool success = 1;
+}

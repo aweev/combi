@@ -1,0 +1,156 @@
+syntax = "proto3";
+
+package combi.squads.v1;
+
+option go_package = "github.com/combi/gen/go/combi/squads/v1;squadsv1";
+
+import "google/protobuf/timestamp.proto";
+import "buf/validate/validate.proto";
+
+// SquadsService manages active groupings, rankings, invites, and espionage.
+service SquadsService {
+  // CreateSquad creates a named squad [p. 6].
+  rpc CreateSquad    (CreateSquadRequest)    returns (CreateSquadResponse);
+  // GetSquadMetadata returns metadata, member counts, and active espionage states [p. 5].
+  rpc GetSquadMetadata (GetSquadMetadataRequest) returns (GetSquadMetadataResponse);
+  // GenerateInvite generates a dynamic invite link with a 7-day TTL [p. 5].
+  rpc GenerateInvite (GenerateInviteRequest) returns (GenerateInviteResponse);
+  // JoinWithToken processes join requests using an invite token [p. 6].
+  rpc JoinWithToken  (JoinWithTokenRequest)  returns (JoinWithTokenResponse);
+  // ListMembers lists all members of a squad and their rankings.
+  rpc ListMembers    (ListMembersRequest)    returns (ListMembersResponse);
+  // PurchaseEspionage initiates a spy-lock against a rival squad for 200 Coins [p. 5].
+  rpc PurchaseEspionage (PurchaseEspionageRequest) returns (PurchaseEspionageResponse);
+}
+
+// Squad represents a grouping entity.
+message Squad {
+  // id is the unique squad ULID.
+  string id = 1 [(buf.validate.field).string.len = 26];
+  // name is the display name of the squad.
+  string name = 2 [(buf.validate.field).string.min_len = 3];
+  // creator_identity_id is the identity ULID of the creator.
+  string creator_identity_id = 3 [(buf.validate.field).string.len = 26];
+  // is_private indicates if the squad is visible to public.
+  bool is_private = 4;
+  // created_at is when the squad was registered.
+  google.protobuf.Timestamp created_at = 5;
+}
+
+// MemberRanking represents rankings of squad members [p. 5].
+message MemberRanking {
+  // identity_id is the unique identity ULID.
+  string identity_id = 1 [(buf.validate.field).string.len = 26];
+  // name is the display name or handle of the member.
+  string name = 2;
+  // avatar_url is the profile image storage location.
+  string avatar_url = 3;
+  // aura_score is the positive rating index [p. 5].
+  int32 aura_score = 4;
+  // toxicity_score is the negative rating index [p. 5].
+  int32 toxicity_score = 5;
+}
+
+// EspionageSpyStatus tracks if spy state is active.
+message EspionageSpyStatus {
+  // spy_access_active indicates if spy state is active.
+  bool spy_access_active = 1;
+  // spy_expires_at tracks when spy access ends [p. 5].
+  google.protobuf.Timestamp spy_expires_at = 2;
+}
+
+// CreateSquadRequest is the squad creation payload.
+message CreateSquadRequest {
+  // name is the display name of the squad.
+  string name = 1 [(buf.validate.field).string.min_len = 3];
+  // creator_identity_id is the identity ULID of the creator.
+  string creator_identity_id = 2 [(buf.validate.field).string.len = 26];
+  // is_private indicates if the squad is private.
+  bool is_private = 3;
+}
+
+// CreateSquadResponse returns the created squad.
+message CreateSquadResponse {
+  // squad is the created squad record.
+  Squad squad = 1;
+  // invite_token is the initial invite token generated.
+  string invite_token = 2;
+}
+
+// GetSquadMetadataRequest is the metadata query payload.
+message GetSquadMetadataRequest {
+  // squad_id is the target squad ULID.
+  string squad_id = 1 [(buf.validate.field).string.len = 26];
+  // caller_identity_id is the unique identity ULID of the caller.
+  string caller_identity_id = 2 [(buf.validate.field).string.len = 26];
+}
+
+// GetSquadMetadataResponse returns squad metadata.
+message GetSquadMetadataResponse {
+  // squad is the resolved squad record.
+  Squad squad = 1;
+  // member_count tracks active members.
+  int32 member_count = 2;
+  // espionage_status is the active spy state [p. 5].
+  EspionageSpyStatus espionage_status = 3;
+}
+
+// GenerateInviteRequest is the invite generation payload.
+message GenerateInviteRequest {
+  // squad_id is the target squad ULID.
+  string squad_id = 1 [(buf.validate.field).string.len = 26];
+  // creator_identity_id is the identity ULID of the creator.
+  string creator_identity_id = 2 [(buf.validate.field).string.len = 26];
+}
+
+// GenerateInviteResponse returns the invite token.
+message GenerateInviteResponse {
+  // invite_token is the invite token generated.
+  string invite_token = 1;
+  // expires_at tracks when the invite token expires.
+  google.protobuf.Timestamp expires_at = 2;
+}
+
+// JoinWithTokenRequest is the join payload.
+message JoinWithTokenRequest {
+  // invite_token is the invite token used.
+  string invite_token = 1 [(buf.validate.field).string.min_len = 10];
+  // identity_id is the unique identity ULID.
+  string identity_id = 2 [(buf.validate.field).string.len = 26];
+}
+
+// JoinWithTokenResponse returns join status.
+message JoinWithTokenResponse {
+  // squad is the joined squad record.
+  Squad squad = 1;
+  // success flags if join completed.
+  bool success = 2;
+}
+
+// ListMembersRequest lists all members of a squad.
+message ListMembersRequest {
+  // squad_id is the target squad ULID.
+  string squad_id = 1 [(buf.validate.field).string.len = 26];
+}
+
+// ListMembersResponse returns the list of members.
+message ListMembersResponse {
+  // members is the list of squad members and their rankings.
+  repeated MemberRanking members = 1;
+}
+
+// PurchaseEspionageRequest initiates spy state.
+message PurchaseEspionageRequest {
+  // rival_squad_id is the target squad ULID.
+  string rival_squad_id = 1 [(buf.validate.field).string.len = 26];
+  // spy_identity_id is the unique identity ULID of the spy.
+  string spy_identity_id = 2 [(buf.validate.field).string.len = 26];
+}
+
+// PurchaseEspionageResponse returns status.
+message PurchaseEspionageResponse {
+  // success flags if espionage was purchased.
+  bool success = 1;
+  // spy_expires_at tracks when the spy state ends.
+  google.protobuf.Timestamp spy_expires_at = 2;
+}

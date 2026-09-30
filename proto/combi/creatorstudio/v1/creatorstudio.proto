@@ -1,0 +1,108 @@
+syntax = "proto3";
+
+package combi.creatorstudio.v1;
+
+option go_package = "github.com/combi/gen/go/combi/creatorstudio/v1;creatorstudiov1";
+
+import "google/protobuf/timestamp.proto";
+import "buf/validate/validate.proto";
+
+// CreatorStudioService coordinates custom deck creations, moderation reviews, and earnings statistics.
+service CreatorStudioService {
+  // GetCreatorDashboard returns analytics summaries, play volumes, and revenue splits [p. 23].
+  rpc GetCreatorDashboard (GetCreatorDashboardRequest) returns (GetCreatorDashboardResponse);
+  // CreateCustomDeck submits a custom prompt deck to the AI/Human moderation queues [p. 23, 26].
+  rpc CreateCustomDeck (CreateCustomDeckRequest) returns (CreateCustomDeckResponse);
+  // GetDeckAnalytics fetches a paginated summary of historical deck performance.
+  rpc GetDeckAnalytics (GetDeckAnalyticsRequest) returns (GetDeckAnalyticsResponse);
+}
+
+// DeckStatus identifies the operational lifecycle state of the custom deck.
+enum DeckStatus {
+  // DECK_STATUS_UNSPECIFIED is the default, unused fallback value.
+  DECK_STATUS_UNSPECIFIED = 0;
+  // DECK_STATUS_IN_REVIEW indicates deck review is active [p. 27].
+  DECK_STATUS_IN_REVIEW   = 1;
+  // DECK_STATUS_LIVE indicates the deck is approved and live [p. 26].
+  DECK_STATUS_LIVE        = 2;
+  // DECK_STATUS_REJECTED indicates deck was rejected [p. 26].
+  DECK_STATUS_REJECTED    = 3;
+  // DECK_STATUS_SHADOWBANNED indicates silent concealment [p. 26].
+  DECK_STATUS_SHADOWBANNED = 4;
+}
+
+// CreatorDeckSummary represents a summary of a creator deck.
+message CreatorDeckSummary {
+  // deck_id is the unique deck ULID.
+  string deck_id = 1 [(buf.validate.field).string.len = 26];
+  // title is the title of the deck.
+  string title = 2;
+  // status is the current operational lifecycle state.
+  DeckStatus status = 3;
+  // total_plays is the total plays of the deck.
+  int32 total_plays = 4;
+  // total_earnings_subunit is the cumulative revenue generated [p. 23, 27].
+  int64 total_earnings_subunit = 5;
+  // created_at is when the record was registered.
+  google.protobuf.Timestamp created_at = 6;
+}
+
+// GetCreatorDashboardRequest is the query payload.
+message GetCreatorDashboardRequest {
+  // creator_identity_id is the unique identity ULID.
+  string creator_identity_id = 1 [(buf.validate.field).string.len = 26];
+}
+
+// GetCreatorDashboardResponse returns creator studio statistics.
+message GetCreatorDashboardResponse {
+  // active_decks_count tracks active decks.
+  int32 active_decks_count = 1;
+  // cumulative_play_count tracks total plays.
+  int32 cumulative_play_count = 2;
+  // available_balance_subunit tracks cleared available earnings [p. 23].
+  int64 available_balance_subunit = 3;
+  // pending_clearance_subunit tracks pending clearance earnings [p. 23, 27].
+  int64 pending_clearance_subunit = 4;
+  // currency is the earnings currency.
+  string currency = 5;
+}
+
+// CreateCustomDeckRequest is the deck submission payload.
+message CreateCustomDeckRequest {
+  // creator_identity_id is the unique identity ULID.
+  string creator_identity_id = 1 [(buf.validate.field).string.len = 26];
+  // title is the title of the deck.
+  string title = 2 [(buf.validate.field).string.min_len = 3];
+  // questions is the list of custom prompts [p. 26].
+  repeated string questions = 3 [(buf.validate.field).repeated = {min_items: 5, max_items: 20}];
+  // target_campus_id is the target campus ID.
+  string target_campus_id = 4 [(buf.validate.field).string.min_len = 1];
+  // language_code is the target language code [p. 10].
+  string language_code = 5 [(buf.validate.field).string.min_len = 2];
+}
+
+// CreateCustomDeckResponse returns deck status.
+message CreateCustomDeckResponse {
+  // deck_id is the unique deck ULID.
+  string deck_id = 1 [(buf.validate.field).string.len = 26];
+  // status is the current operational lifecycle state.
+  DeckStatus status = 2;
+  // message explains the status decision [p. 26].
+  string message = 3;
+}
+
+// GetDeckAnalyticsRequest is the analytics query payload.
+message GetDeckAnalyticsRequest {
+  // deck_id is the unique deck ULID.
+  string deck_id = 1 [(buf.validate.field).string.len = 26];
+}
+
+// GetDeckAnalyticsResponse returns deck analytics.
+message GetDeckAnalyticsResponse {
+  // summary is the creator deck summary.
+  CreatorDeckSummary summary = 1;
+  // unlock_conversion_rate is the page hits to unlocks conversion rate [p. 14].
+  double unlock_conversion_rate = 2;
+  // plays_trend_last_30_days tracks the play trend for last 30 days.
+  repeated int32 plays_trend_last_30_days = 3;
+}

@@ -1,0 +1,9 @@
+# Dynamic config for temporalio/auto-setup (docker-compose.dev.yml).
+# Mirrors the docker sample bundled with Temporal:
+# https://github.com/temporalio/temporal/blob/master/config/dynamicconfig/docker.yaml
+limit.maxIDLength:
+  - value: 255
+    constraints: {}
+system.forceSearchAttributesCacheRefreshOnRead:
+  - value: true
+    constraints: {}

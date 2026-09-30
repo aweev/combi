@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package combi.acl.v1;
+
+option go_package = "github.com/combi/gen/go/combi/access/v1;aclv1";
+
+import "google/protobuf/timestamp.proto";
+import "buf/validate/validate.proto";
+
+// AccessControlService manages permission verification, role distributions, and administrative locks.
+service AccessControlService {
+  // CheckPermission evaluates client identity permissions before allowing workspace executions [p. 8].
+  rpc CheckPermission (CheckPermissionRequest) returns (CheckPermissionResponse);
+  // AssignRole assigns specialized administrative or creator group roles [p. 6, 8, 41].
+  rpc AssignRole (AssignRoleRequest) returns (AssignRoleResponse);
+}
+
+// AccessRole defines the permission boundaries of an identity.
+enum AccessRole {
+  // ACCESS_ROLE_UNSPECIFIED is the default, unused fallback value.
+  ACCESS_ROLE_UNSPECIFIED = 0;
+  // ACCESS_ROLE_CIVILIAN represents a standard player [p. 11].
+  ACCESS_ROLE_CIVILIAN        = 1;
+  // ACCESS_ROLE_SQUAD_ADMIN represents a squad creator [p. 6].
+  ACCESS_ROLE_SQUAD_ADMIN     = 2;
+  // ACCESS_ROLE_CREATOR represents a custom deck developer [p. 13].
+  ACCESS_ROLE_CREATOR         = 3;
+  // ACCESS_ROLE_AMBASSADOR represents a campus recruiter [p. 7, 30].
+  ACCESS_ROLE_AMBASSADOR      = 4;
+  // ACCESS_ROLE_ENTERPRISE_ADMIN represents an HR portal CISO [p. 16].
+  ACCESS_ROLE_ENTERPRISE_ADMIN = 5;
+  // ACCESS_ROLE_ARCHITECT represents an admin console operator [p. 8, 18].
+  ACCESS_ROLE_ARCHITECT       = 6;
+}
+
+// CheckPermissionRequest is the verification payload.
+message CheckPermissionRequest {
+  // identity_id is the unique identity ULID.
+  string identity_id = 1 [(buf.validate.field).string.len = 26];
+  // resource_uri is the target route or resource key (e.g. "squad:123:write", "architect:command") [p. 5, 8].
+  string resource_uri = 2 [(buf.validate.field).string.min_len = 3];
+}
+
+// CheckPermissionResponse returns authorization status.
+message CheckPermissionResponse {
+  // is_authorized is true if the client has permissions.
+  bool is_authorized = 1;
+  // active_role is the resolved permission role.
+  AccessRole active_role = 2;
+}
+
+// AssignRoleRequest modifies the role assigned to an identity.
+message AssignRoleRequest {
+  // target_identity_id is the unique identity ULID.
+  string target_identity_id = 1 [(buf.validate.field).string.len = 26];
+  // target_role is the updated permission role.
+  AccessRole target_role = 2;
+  // authorized_by_id is the identity ULID of the administrator authorizing this modification.
+  string authorized_by_id = 3 [(buf.validate.field).string.len = 26];
+}
+
+// AssignRoleResponse returns role update status.
+message AssignRoleResponse {
+  // success flags if modification completed.
+  bool success = 1;
+  // updated_at is when the role was updated.
+  google.protobuf.Timestamp updated_at = 2;
+}

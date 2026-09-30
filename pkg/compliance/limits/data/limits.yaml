@@ -1,0 +1,36 @@
+# Transaction limits — in USD equivalent
+# Use string values to avoid float precision issues.
+
+CM:
+  - kyc_level: 0
+    daily_send_usd: "0"
+    monthly_send_usd: "0"
+    single_tx_usd: "0"
+    cross_border_pct: "0"
+    notes: "COBAC R-2019/01 — no transactions at KYC level 0"
+  - kyc_level: 1
+    daily_send_usd: "200"
+    monthly_send_usd: "1000"
+    single_tx_usd: "100"
+    cross_border_pct: "0"
+    notes: "COBAC R-2019/01 Art. 14 — petite monnaie"
+  - kyc_level: 2
+    daily_send_usd: "5000"
+    monthly_send_usd: "20000"
+    single_tx_usd: "2000"
+    cross_border_pct: "0.5"
+    notes: "COBAC R-2019/01 Art. 15"
+
+NG:
+  - kyc_level: 1
+    daily_send_usd: "125"
+    monthly_send_usd: "500"
+    single_tx_usd: "63"
+    cross_border_pct: "0"
+    notes: "CBN KYC Tier 1"
+  - kyc_level: 3
+    daily_send_usd: "unlimited"
+    monthly_send_usd: "unlimited"
+    single_tx_usd: "unlimited"
+    cross_border_pct: "1.0"
+    notes: "CBN KYC Tier 3 — no statutory cap"

@@ -1,0 +1,174 @@
+syntax = "proto3";
+
+package combi.payments.v1;
+
+option go_package = "github.com/combi/gen/go/combi/payments/v1;paymentsv1";
+
+import "google/protobuf/timestamp.proto";
+import "buf/validate/validate.proto";
+
+// PaymentsService abstracts mobile money platforms, cards, and payouts.
+service PaymentsService {
+  // CreatePayment initiates a cash-in transaction (MoMo or Paystack).
+  rpc CreatePayment (CreatePaymentRequest) returns (CreatePaymentResponse);
+  // GetPaymentStatus checks the status of a pending payment transaction.
+  rpc GetPaymentStatus (GetPaymentStatusRequest) returns (GetPaymentStatusResponse);
+  // ProcessOperatorWebhook registers and verifies operator webhooks securely.
+  rpc ProcessOperatorWebhook (ProcessOperatorWebhookRequest) returns (ProcessOperatorWebhookResponse);
+  // PayoutEarnings triggers an outbound payout (withdrawal) to carrier wallets.
+  rpc PayoutEarnings (PayoutEarningsRequest) returns (PayoutEarningsResponse);
+}
+
+// PaymentProvider identifies the partner payment platform.
+enum PaymentProvider {
+  // PAYMENT_PROVIDER_UNSPECIFIED is the default, unused fallback value.
+  PAYMENT_PROVIDER_UNSPECIFIED = 0;
+  // PAYMENT_PROVIDER_MTN_MOMO represents MTN MoMo.
+  PAYMENT_PROVIDER_MTN_MOMO     = 1;
+  // PAYMENT_PROVIDER_ORANGE_MONEY represents Orange Money.
+  PAYMENT_PROVIDER_ORANGE_MONEY = 2;
+  // PAYMENT_PROVIDER_PAYSTACK represents Paystack.
+  PAYMENT_PROVIDER_PAYSTACK     = 3;
+}
+
+// PaymentStatus identifies the transaction lifecycle state.
+enum PaymentStatus {
+  // PAYMENT_STATUS_UNSPECIFIED is the default, unused fallback value.
+  PAYMENT_STATUS_UNSPECIFIED = 0;
+  // PAYMENT_STATUS_INITIATED indicates checkout has begun.
+  PAYMENT_STATUS_INITIATED   = 1;
+  // PAYMENT_STATUS_PENDING indicates operator has received the request.
+  PAYMENT_STATUS_PENDING     = 2;
+  // PAYMENT_STATUS_PROCESSING indicates webhook is being awaited.
+  PAYMENT_STATUS_PROCESSING  = 3;
+  // PAYMENT_STATUS_COMPLETED indicates ledger settled.
+  PAYMENT_STATUS_COMPLETED   = 4;
+  // PAYMENT_STATUS_FAILED indicates transaction was declined.
+  PAYMENT_STATUS_FAILED      = 5;
+  // PAYMENT_STATUS_CANCELLED indicates transaction cancelled by user.
+  PAYMENT_STATUS_CANCELLED   = 6;
+  // PAYMENT_STATUS_REFUNDED indicates transaction has been reversed.
+  PAYMENT_STATUS_REFUNDED    = 7;
+}
+
+// PaymentConversionMetadata stores rate tracking parameters [p. 32].
+message PaymentConversionMetadata {
+  // source_currency is the currency spent at checkout [p. 32].
+  string source_currency = 1 [(buf.validate.field).string.len = 3];
+  // source_amount_subunit is the real subunit value spent at source.
+  int64 source_amount_subunit = 2 [(buf.validate.field).int64.gt = 0];
+  // exchange_rate_ratio is the rate ratio used during conversion [p. 32].
+  int64 exchange_rate_ratio = 3;
+}
+
+// Payment represents a single financial ledger row inside CAST [p. 32].
+message Payment {
+  // id is the unique ULID identifying this payment.
+  string id = 1 [(buf.validate.field).string.len = 26];
+  // amount_subunit is the real value settled inside ledger (audited strictly in CFA) [p. 32].
+  int64 amount_subunit = 2 [(buf.validate.field).int64.gt = 0];
+  // currency is the system currency of the ledger record [p. 32].
+  string currency = 3 [(buf.validate.field).string.len = 3];
+  // status is the current payment transaction lifecycle state.
+  PaymentStatus status = 4;
+  // provider is the partner payment platform used.
+  PaymentProvider provider = 5;
+  // provider_reference is the external operator transaction ID.
+  string provider_reference = 6;
+  // payer_phone is the verification carrier phone number.
+  string payer_phone = 7 [(buf.validate.field).string.pattern = "^\\+[1-9]\\d{6,14}$"];
+  // recipient_id is the target identity ULID.
+  string recipient_id = 8 [(buf.validate.field).string.len = 26];
+  // description is additional ledger description.
+  string description = 9 [(buf.validate.field).string.max_len = 255];
+  // idempotency_key prevents duplicate billing on retry.
+  string idempotency_key = 10 [(buf.validate.field).string.uuid = true];
+  // created_at is when checkout began.
+  google.protobuf.Timestamp created_at = 11;
+  // completed_at is when checkout completed.
+  google.protobuf.Timestamp completed_at = 12;
+  // conversion_metadata is the captured source conversion data [p. 32].
+  PaymentConversionMetadata conversion_metadata = 13;
+}
+
+// CreatePaymentRequest initiates checkout.
+message CreatePaymentRequest {
+  // amount_subunit is the subunit value of checkout.
+  int64 amount_subunit = 1 [(buf.validate.field).int64.gt = 0];
+  // currency is the target checkout currency code.
+  string currency = 2 [(buf.validate.field).string.len = 3];
+  // provider is the target checkout payment partner.
+  PaymentProvider provider = 3;
+  // payer_phone is the payer carrier phone number.
+  string payer_phone = 4 [(buf.validate.field).string.pattern = "^\\+[1-9]\\d{6,14}$"];
+  // recipient_id is the destination identity ULID.
+  string recipient_id = 5 [(buf.validate.field).string.len = 26];
+  // description is additional ledger description.
+  string description = 6;
+  // idempotency_key prevents duplicate billing on retry.
+  string idempotency_key = 7 [(buf.validate.field).string.uuid = true];
+}
+
+// CreatePaymentResponse returns initial checkout details.
+message CreatePaymentResponse {
+  // payment is the initiated payment record.
+  Payment payment = 1;
+  // redirect_action is the USSD string or redirect URL of the checkout.
+  string redirect_action = 2;
+}
+
+// GetPaymentStatusRequest is the status query payload.
+message GetPaymentStatusRequest {
+  // payment_id is the unique payment ULID.
+  string payment_id = 1 [(buf.validate.field).string.len = 26];
+}
+
+// GetPaymentStatusResponse returns transaction status.
+message GetPaymentStatusResponse {
+  // status is the current payment transaction status.
+  PaymentStatus status = 1;
+  // provider_reference is the external operator transaction ID.
+  string provider_reference = 2;
+  // completed_at is the timestamp when checkout completed.
+  google.protobuf.Timestamp completed_at = 3;
+}
+
+// ProcessOperatorWebhookRequest processes webhook payloads.
+message ProcessOperatorWebhookRequest {
+  // provider identifies the payment partner.
+  PaymentProvider provider = 1;
+  // raw_payload is the binary webhook body.
+  bytes raw_payload = 2 [(buf.validate.field).bytes.min_len = 1];
+  // signature_header is the validation signature.
+  string signature_header = 3 [(buf.validate.field).string.min_len = 1];
+}
+
+// ProcessOperatorWebhookResponse returns processing status.
+message ProcessOperatorWebhookResponse {
+  // success flags if processing completed.
+  bool success = 1;
+  // transaction_id is the unique payment ULID.
+  string transaction_id = 2;
+}
+
+// PayoutEarningsRequest initiates outbound payouts.
+message PayoutEarningsRequest {
+  // identity_id is the unique identity ULID.
+  string identity_id = 1 [(buf.validate.field).string.len = 26];
+  // amount_subunit is the subunit value of payout.
+  int64 amount_subunit = 2 [(buf.validate.field).int64.gt = 0];
+  // currency is the target payout currency code.
+  string currency = 3 [(buf.validate.field).string.len = 3];
+  // recipient_phone is the destination carrier phone number.
+  string recipient_phone = 4 [(buf.validate.field).string.pattern = "^\\+[1-9]\\d{6,14}$"];
+  // idempotency_key prevents duplicate payouts on retry.
+  string idempotency_key = 5 [(buf.validate.field).string.uuid = true];
+}
+
+// PayoutEarningsResponse returns payout status.
+message PayoutEarningsResponse {
+  // transaction_id is the unique payment ULID.
+  string transaction_id = 1 [(buf.validate.field).string.len = 26];
+  // status is the current state of the payout.
+  PaymentStatus status = 2;
+}
