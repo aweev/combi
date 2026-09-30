@@ -25,6 +25,7 @@ import (
 	"github.com/combi/pkg/domain/secret"
 	"github.com/combi/pkg/domain/user"
 	"github.com/combi/pkg/events"
+	"github.com/combi/pkg/fxnoop"
 	"github.com/combi/pkg/health"
 	"github.com/combi/pkg/log"
 	"github.com/combi/pkg/oauth"
@@ -64,10 +65,10 @@ type moduleDeps struct {
 	Bus    events.Bus
 
 	Audit      audit.EventRecorder       `optional:"true"`
-	Dispatcher queue.Dispatcher         `optional:"true"`
-	NotifSvc   notification.Service     `optional:"true"`
-	UserSvc    user.Service             `optional:"true"`
-	SecretSvc  secret.Service           `optional:"true"`
+	Dispatcher queue.Dispatcher          `optional:"true"`
+	NotifSvc   notification.Service      `optional:"true"`
+	UserSvc    user.Service              `optional:"true"`
+	SecretSvc  secret.Service            `optional:"true"`
 	Authz      rbac.AuthorizationService `optional:"true"`
 
 	Registrar rbac.PermissionRegistrar `optional:"true"`
@@ -91,11 +92,11 @@ type servicesOut struct {
 func provideServices(d moduleDeps) (servicesOut, error) {
 	registrar := d.Registrar
 	if registrar == nil {
-		registrar = discardRegistrar{}
+		registrar = fxnoop.NoopRegistrar{}
 	}
 	registry := d.Registry
 	if registry == nil {
-		registry = discardRegistry{}
+		registry = fxnoop.NoopRegistry{}
 	}
 	crypto, err := totpCrypto(d.Config, d.Random)
 	if err != nil {
@@ -173,17 +174,4 @@ func RegisterHooks(d hooksDeps) {
 			return nil
 		},
 	})
-}
-
-type discardRegistrar struct{}
-
-func (discardRegistrar) Register(rbac.PermissionDefinition) {}
-func (discardRegistrar) SyncWithDataStore(context.Context) error { return nil }
-func (discardRegistrar) GetDefinitions() []rbac.PermissionDefinition { return nil }
-
-type discardRegistry struct{}
-
-func (discardRegistry) RegisterService(core.ServiceManifest) {}
-func (discardRegistry) GetSystemCapabilities(context.Context) ([]core.ServiceManifest, error) {
-	return nil, nil
 }

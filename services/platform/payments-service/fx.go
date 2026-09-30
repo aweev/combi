@@ -23,6 +23,7 @@ import (
 	"github.com/combi/pkg/domain/rbac"
 	"github.com/combi/pkg/domain/reporting"
 	"github.com/combi/pkg/events"
+	"github.com/combi/pkg/fxnoop"
 	"github.com/combi/pkg/health"
 	"github.com/combi/pkg/log"
 	pPostgres "github.com/combi/pkg/persistence/postgres"
@@ -58,7 +59,7 @@ type moduleDeps struct {
 	Bus    events.Bus
 	Audit  audit.EventRecorder
 
-	Dispatcher queue.Dispatcher             `optional:"true"`
+	Dispatcher queue.Dispatcher            `optional:"true"`
 	ProvFac    integration.ProviderFactory `optional:"true"`
 
 	Registrar rbac.PermissionRegistrar `optional:"true"`
@@ -81,11 +82,11 @@ type servicesOut struct {
 func provideServices(d moduleDeps) (servicesOut, error) {
 	registrar := d.Registrar
 	if registrar == nil {
-		registrar = discardRegistrar{}
+		registrar = fxnoop.NoopRegistrar{}
 	}
 	registry := d.Registry
 	if registry == nil {
-		registry = discardRegistry{}
+		registry = fxnoop.NoopRegistry{}
 	}
 	factory := d.ProvFac
 	if factory == nil {
@@ -167,17 +168,4 @@ func (discardProviderFactory) BuildWebPushProvider(typ core.ProviderType, config
 
 func (discardProviderFactory) GetWebhookParser(config *integration.Integration, creds map[string]string) (integration.WebhookParser, error) {
 	return nil, errors.New("integration-service not yet ported")
-}
-
-type discardRegistrar struct{}
-
-func (discardRegistrar) Register(rbac.PermissionDefinition) {}
-func (discardRegistrar) SyncWithDataStore(context.Context) error { return nil }
-func (discardRegistrar) GetDefinitions() []rbac.PermissionDefinition { return nil }
-
-type discardRegistry struct{}
-
-func (discardRegistry) RegisterService(core.ServiceManifest) {}
-func (discardRegistry) GetSystemCapabilities(context.Context) ([]core.ServiceManifest, error) {
-	return nil, nil
 }

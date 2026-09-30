@@ -20,6 +20,7 @@ import (
 	"github.com/combi/pkg/domain/queue"
 	"github.com/combi/pkg/domain/rbac"
 	"github.com/combi/pkg/domain/user"
+	"github.com/combi/pkg/fxnoop"
 	"github.com/combi/pkg/health"
 	"github.com/combi/pkg/log"
 	"github.com/combi/pkg/security"
@@ -75,11 +76,11 @@ type servicesOut struct {
 func provideServices(d moduleDeps) (servicesOut, error) {
 	registrar := d.Registrar
 	if registrar == nil {
-		registrar = discardRegistrar{}
+		registrar = fxnoop.NoopRegistrar{}
 	}
 	registry := d.Registry
 	if registry == nil {
-		registry = discardRegistry{}
+		registry = fxnoop.NoopRegistry{}
 	}
 	tokenGen := d.TokenGen
 	if tokenGen == nil {
@@ -133,17 +134,4 @@ func RegisterHooks(d hooksDeps) {
 			return nil
 		},
 	})
-}
-
-type discardRegistrar struct{}
-
-func (discardRegistrar) Register(rbac.PermissionDefinition) {}
-func (discardRegistrar) SyncWithDataStore(context.Context) error { return nil }
-func (discardRegistrar) GetDefinitions() []rbac.PermissionDefinition { return nil }
-
-type discardRegistry struct{}
-
-func (discardRegistry) RegisterService(core.ServiceManifest) {}
-func (discardRegistry) GetSystemCapabilities(context.Context) ([]core.ServiceManifest, error) {
-	return nil, nil
 }

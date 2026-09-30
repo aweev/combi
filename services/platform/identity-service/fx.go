@@ -22,6 +22,7 @@ import (
 	"github.com/combi/pkg/domain/storage"
 	"github.com/combi/pkg/domain/user"
 	"github.com/combi/pkg/events"
+	"github.com/combi/pkg/fxnoop"
 	"github.com/combi/pkg/health"
 	"github.com/combi/pkg/log"
 )
@@ -55,8 +56,8 @@ type moduleDeps struct {
 	Logger log.Logger
 
 	Audit      audit.EventRecorder       `optional:"true"`
-	StorageSvc storage.Service          `optional:"true"`
-	Dispatcher queue.Dispatcher         `optional:"true"`
+	StorageSvc storage.Service           `optional:"true"`
+	Dispatcher queue.Dispatcher          `optional:"true"`
 	Bus        events.Bus                `optional:"true"`
 	RBAC       rbac.AuthorizationService `optional:"true"`
 
@@ -76,11 +77,11 @@ type servicesOut struct {
 func provideServices(d moduleDeps) (servicesOut, error) {
 	registrar := d.Registrar
 	if registrar == nil {
-		registrar = discardRegistrar{}
+		registrar = fxnoop.NoopRegistrar{}
 	}
 	registry := d.Registry
 	if registry == nil {
-		registry = discardRegistry{}
+		registry = fxnoop.NoopRegistry{}
 	}
 	c, err := usersvc.NewContainer(usersvc.Dependencies{
 		DB:            d.DB,
@@ -123,17 +124,4 @@ func RegisterHooks(d hooksDeps) {
 			return nil
 		},
 	})
-}
-
-type discardRegistrar struct{}
-
-func (discardRegistrar) Register(rbac.PermissionDefinition) {}
-func (discardRegistrar) SyncWithDataStore(context.Context) error { return nil }
-func (discardRegistrar) GetDefinitions() []rbac.PermissionDefinition { return nil }
-
-type discardRegistry struct{}
-
-func (discardRegistry) RegisterService(core.ServiceManifest) {}
-func (discardRegistry) GetSystemCapabilities(context.Context) ([]core.ServiceManifest, error) {
-	return nil, nil
 }

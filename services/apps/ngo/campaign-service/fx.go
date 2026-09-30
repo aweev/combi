@@ -16,6 +16,7 @@ import (
 	"github.com/combi/pkg/domain/core"
 	"github.com/combi/pkg/domain/rbac"
 	"github.com/combi/pkg/events"
+	"github.com/combi/pkg/fxnoop"
 	"github.com/combi/pkg/health"
 	"github.com/combi/pkg/log"
 )
@@ -65,11 +66,11 @@ type servicesOut struct {
 func provideServices(d moduleDeps) (servicesOut, error) {
 	registrar := d.Registrar
 	if registrar == nil {
-		registrar = discardRegistrar{}
+		registrar = fxnoop.NoopRegistrar{}
 	}
 	registry := d.Registry
 	if registry == nil {
-		registry = discardRegistry{}
+		registry = fxnoop.NoopRegistry{}
 	}
 	// NewContainer takes a single Dependencies value with Registrar/Registry
 	// nested inside (unlike project-service which takes them as extra args).
@@ -113,17 +114,4 @@ func RegisterHooks(d hooksDeps) {
 			return nil
 		},
 	})
-}
-
-type discardRegistrar struct{}
-
-func (discardRegistrar) Register(rbac.PermissionDefinition) {}
-func (discardRegistrar) SyncWithDataStore(context.Context) error { return nil }
-func (discardRegistrar) GetDefinitions() []rbac.PermissionDefinition { return nil }
-
-type discardRegistry struct{}
-
-func (discardRegistry) RegisterService(core.ServiceManifest) {}
-func (discardRegistry) GetSystemCapabilities(context.Context) ([]core.ServiceManifest, error) {
-	return nil, nil
 }

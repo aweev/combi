@@ -17,6 +17,7 @@ import (
 	"github.com/combi/pkg/domain/core"
 	"github.com/combi/pkg/domain/queue"
 	"github.com/combi/pkg/events"
+	"github.com/combi/pkg/fxnoop"
 	"github.com/combi/pkg/health"
 	"github.com/combi/pkg/log"
 	pmonitoring "github.com/combi/pkg/monitoring"
@@ -67,7 +68,7 @@ type servicesOut struct {
 func provideServices(d moduleDeps) (servicesOut, error) {
 	registry := d.Registry
 	if registry == nil {
-		registry = discardRegistry{}
+		registry = fxnoop.NoopRegistry{}
 	}
 	// NOTE: Audit arrives nil (dig `optional:"true"`) until the audit
 	// module is mounted (nil-safe stopgap convention). PrometheusURL
@@ -110,11 +111,4 @@ func RegisterHooks(d hooksDeps) {
 			return nil
 		},
 	})
-}
-
-type discardRegistry struct{}
-
-func (discardRegistry) RegisterService(core.ServiceManifest) {}
-func (discardRegistry) GetSystemCapabilities(context.Context) ([]core.ServiceManifest, error) {
-	return nil, nil
 }
