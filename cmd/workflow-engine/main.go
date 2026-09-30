@@ -1,5 +1,5 @@
-// combi/cmd/workflow-engine — the Temporal host binary (per plan.md's
-// binary consolidation strategy).
+// combi/cmd/workflow-engine — the Temporal host binary (per docs/01-DECISIONS.md
+// D-09 binary consolidation).
 //
 // Temporal workers have their own lifecycle, which is why they get a
 // dedicated binary instead of living inside platform-server. This host

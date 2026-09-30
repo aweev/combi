@@ -1,0 +1,19 @@
+name: docs
+
+# Makes README.md §3 real. Before this file existed, combi/.github/workflows/ was empty,
+# so "enforced in CI" was a claim with no mechanism behind it — the exact failure mode
+# the old corpus fell into when it declared seven invariants and violated three of them.
+on:
+  pull_request:
+    paths: ['docs/**', '.github/workflows/docs.yml']
+  push:
+    branches: [main]
+    paths: ['docs/**', '.github/workflows/docs.yml']
+
+jobs:
+  invariants:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check documentation invariants
+        run: cd docs && chmod +x check-docs.sh && ./check-docs.sh

@@ -5,7 +5,7 @@
 # overrides database.password, etc). Production secret values must come from
 # env vars — loader.go rejects insecure defaults when env=production.
 #
-# Host port assignment (consolidated topology, plan.md):
+# Host port assignment (consolidated topology, docs/01-DECISIONS.md D-09):
 #   platform-server gRPC ... :50051 (server.grpcPort)
 #   workflow-engine ......... no listener (workers pull from Temporal)
 

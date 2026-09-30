@@ -1,5 +1,5 @@
 // combi/cmd/platform-server — consolidated host binary for ALL platform
-// services (per plan.md's binary consolidation strategy).
+// services (per docs/01-DECISIONS.md D-09 binary consolidation).
 //
 // Instead of 22+ individual service binaries, every platform service is an
 // fx library module mounted here (see combi/cmd/service-init to generate

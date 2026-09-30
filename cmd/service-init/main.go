@@ -3,7 +3,7 @@
 // Generates a service as an fx library module (no main package) under
 // combi/services/<tier>/<name>-service/. Host binaries (cmd/platform-server,
 // cmd/workflow-engine) mount the modules via fx — per the consolidated
-// topology in plan.md. service-init therefore never emits a main package.
+// topology in docs/01-DECISIONS.md (D-09). service-init therefore never emits a main package.
 //
 // Usage:
 //

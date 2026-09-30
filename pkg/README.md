@@ -52,7 +52,7 @@ Shared Go packages for all combi services. Consumed via the workspace
 - **fx modules** (`fxcore`): hosts mount `InfraModule` (+ `ProvideGrpcServer`
   when serving); Temporal is opt-in because its client retries ~90s.
 
-## Topology (see ../plan.md)
+## Topology (see ../docs/01-DECISIONS.md, D-09)
 
 3 kinds of host binaries, services are library modules (no main package):
 
