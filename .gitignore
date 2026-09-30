@@ -26,3 +26,18 @@ coverage.html
 
 # macOS
 .DS_Store
+
+# ── build outputs that were committed by mistake (untracked 2026-09-30) ─────
+# The host binaries are plain `go build` output; the per-service `server` files
+# are the legacy binaries the D-09 single-binary topology no longer produces.
+# Named explicitly because each binary collides with its own directory name, so
+# a broad cmd/*/[a-z]* pattern would also swallow main.go.
+/cmd/i18n-tool/i18n-tool
+/cmd/platform-server/platform-server
+/cmd/service-init/service-init
+/cmd/workflow-engine/workflow-engine
+/service-init
+/services/apps/cast/arena-service/server
+/services/apps/cast/burnbook-service/server
+/services/platform/api-gateway-service/server
+/services/platform/trust-reputation-service/server
